@@ -1,0 +1,7 @@
+# Load the Hdfs NS driver (for the namespace handling)
+LoadPlugin plugin_hdfs_ns /usr/lib@LIB_SUFFIX@/dmlite/plugin_hdfs.so
+
+HdfsNameNode localhost
+HdfsPort 8020
+HdfsUser dpmmgr
+HdfsMode rw

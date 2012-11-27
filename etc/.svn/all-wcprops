@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 55
+/reps/lcgdm/!svn/ver/7906/dmlite-plugins-hdfs/trunk/etc
+END
+hdfs-io.conf.in
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/reps/lcgdm/!svn/ver/7407/dmlite-plugins-hdfs/trunk/etc/hdfs-io.conf.in
+END
+hdfs-pool.conf.in
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/reps/lcgdm/!svn/ver/7407/dmlite-plugins-hdfs/trunk/etc/hdfs-pool.conf.in
+END
+hdfs-ns.conf
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/reps/lcgdm/!svn/ver/7906/dmlite-plugins-hdfs/trunk/etc/hdfs-ns.conf
+END
+hdfs-ns.conf.in
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/reps/lcgdm/!svn/ver/7906/dmlite-plugins-hdfs/trunk/etc/hdfs-ns.conf.in
+END
