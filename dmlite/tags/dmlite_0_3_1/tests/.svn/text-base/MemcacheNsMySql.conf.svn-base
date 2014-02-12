@@ -1,0 +1,12 @@
+LoadPlugin plugin_mysql_ns   ../plugins/mysql/plugin_mysql.so
+LoadPlugin plugin_memcache   ../plugins/memcache/plugin_memcache.so
+
+
+MySqlHost localhost
+
+MySqlUsername dpmmgr
+MySqlPassword fnvQ7&n8hmezcocqmyLw
+
+SymLinkLimit 3
+
+MemcachedServer localhost:11212

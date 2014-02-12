@@ -1,8 +1,21 @@
-* Tue Nov 27 2012 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.0-1
-- hdfs-ns implementation
+* Tue Dec 17 2013 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.3
+- added HDFSGateway mode
 
-* Tue Oct 16 2012 Ricardo Rocha <ricardo.rocha@cern.ch> - 0.5.0-1
+* Mon Oct 21 2013 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.2
+- Adapted HDFSIOHandler to latest dmlite
+- removed check for EOF
+
+* Mon May 6 2013 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.1
+- adapted to libdhfs changes v 4.2.1
+- adapted to dmlite-libs 0.6.1
+
+* Wed Dec 19 2012 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.0
+- Added catalog plugin accessing the HDFS namespace directly
+- Updated patched libhdfs for cloudera 4.1.2 compatibility
+- Added checks on HDFS pools before allowing r/w/rw
+
+* Tue Oct 16 2012 Ricardo Rocha <ricardo.rocha@cern.ch> - 0.5.0
 - Renamed component to dmlite-plugins-hdfs
 
-* Fri Jul 12 2012 Ricardo Rocha <ricardo.rocha@cern.ch> - 0.3.0-1
+* Fri Jul 12 2012 Ricardo Rocha <ricardo.rocha@cern.ch> - 0.3.0
 - Initial package after split of core dmlite

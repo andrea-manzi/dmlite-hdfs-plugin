@@ -1,0 +1,11 @@
+K 10
+svn:ignore
+V 37
+.Doxyfile.in.swp
+.CMakeLists.txt.swp
+
+K 13
+svn:mergeinfo
+V 39
+/dmlite/branches/dmlite_0_3_0:5991-6047
+END

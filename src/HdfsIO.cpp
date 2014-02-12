@@ -1,4 +1,5 @@
 #include "Hdfs.h"
+#include <stdio.h>
 
 using namespace dmlite;
 
@@ -7,10 +8,20 @@ HdfsIOHandler::HdfsIOHandler(HdfsIODriver* driver,
                                  int flags) throw (DmException):
   driver(driver), path(uri)
 {
+  //remove the host info if present
+  std::string uri_string = std::string(uri);
+ 
+  size_t index = uri_string.find(':');
+
+  if (index!=std::string::npos){
+          uri_string = uri_string.substr(index+1, uri.size());
+  }
+
+ 
   // Try to open the hdfs file, map the errno to the DmException otherwise
-  this->file = hdfsOpenFile(driver->fs, uri.c_str(), flags, 0, 0, 0);
-  if (!this->file)
-    throw DmException(errno, "Can not open the Hdfs file '%s'", uri.c_str());
+  this->file = hdfsOpenFile(driver->fs, uri_string.c_str(), flags, 0, 0, 0);
+  if (!this->file)//workaround using ENOENT always
+    throw DmException(ENOENT, "Can not open the Hdfs file '%s'", uri_string.c_str());
 
   this->isEof = false;
 }
@@ -41,8 +52,8 @@ size_t HdfsIOHandler::read(char* buffer, size_t count) throw (DmException)
 	size_t bytes_read = hdfsRead(this->driver->fs, this->file, buffer, count);
  
   // EOF flag is returned if the number of bytes read is lesser than the requested
-	if (bytes_read < count)
-		this->isEof = true;
+  //	if (bytes_read < count)
+  //		this->isEof = true;
 
 	return bytes_read;
 }
@@ -51,6 +62,7 @@ size_t HdfsIOHandler::read(char* buffer, size_t count) throw (DmException)
 
 // Write a chunk of a file in a HDFS FS
 size_t HdfsIOHandler::write(const char* buffer, size_t count) throw (DmException){
+        printf("writing bytes");
 	return hdfsWrite(this->driver->fs, this->file, buffer, count);
 }
 
@@ -129,19 +141,17 @@ std::string HdfsIODriver::getImplId() const throw ()
 
 
 
-void HdfsIODriver::setStackInstance(StackInstance*) throw (DmException)
-{
-  // Nothing
-}
-
-
-
 void HdfsIODriver::setSecurityContext(const SecurityContext* ctx) throw (DmException)
 {
   if (this->tokenUseIp)
     this->userId = ctx->credentials.remoteAddress;
   else
     this->userId = ctx->credentials.clientName;
+}
+
+void HdfsIODriver::setStackInstance(StackInstance* si) throw (DmException)
+{
+  this->si_ = si;
 }
 
 
@@ -174,12 +184,14 @@ IOHandler *HdfsIODriver::createIOHandler(const std::string& pfn,
 
 
 
-void HdfsIODriver::doneWriting(const std::string& pfn,
-                                 const Extensible& params) throw (DmException)
+void HdfsIODriver::doneWriting(const Location& loc) throw (DmException)
 {
+  if (loc.empty())
+    throw DmException(EINVAL, "Location is empty");
+
   // Name the replica properly (supress .upload)
-  std::string final = pfn.substr(0, pfn.length() - 7);
-  if (hdfsRename(this->fs, pfn.c_str(), final.c_str()) != 0)
+  std::string final = loc[0].url.path.substr(0, loc[0].url.path.length() - 7);
+  if (hdfsRename(this->fs, loc[0].url.path.c_str(), final.c_str()) != 0)
     throw DmException(errno, "Could not rename %s to %s",
-                      pfn.c_str(), final.c_str());
+                     loc[0].url.path.c_str(), final.c_str());
 }

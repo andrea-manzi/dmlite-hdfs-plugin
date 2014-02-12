@@ -1,9 +1,0 @@
-# Load the Hdfs IO driver (for the disks)
-LoadPlugin plugin_hdfs_io /usr/lib@LIB_SUFFIX@/dmlite/plugin_hdfs.so
-
-TokenPassword change-this
-TokenId ip
-
-HdfsNameNode localhost
-HdfsPort 8020
-HdfsUser dpmmgr

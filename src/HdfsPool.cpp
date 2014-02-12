@@ -11,8 +11,9 @@ using namespace dmlite;
 
 HdfsPoolDriver::HdfsPoolDriver(const std::string& passwd,
                                    bool useIp,
-                                   unsigned lifetime) throw (DmException):
- stack(0x00), tokenPasswd(passwd), tokenUseIp(useIp), tokenLife(lifetime)
+        	                   unsigned lifetime,
+				   bool gateway) throw (DmException):
+ stack(0x00), tokenPasswd(passwd), tokenUseIp(useIp), tokenLife(lifetime), gateway(gateway)
 {
   // Nothing
 }
@@ -79,7 +80,7 @@ PoolHandler* HdfsPoolDriver::createPoolHandler(const std::string& poolName) thro
     throw DmException(DMLITE_SYSERR(errno),
                       "Could not create a HdfsPoolDriver: cannot connect to Hdfs");
     
-  return new HdfsPoolHandler(this, host, poolName, fs, this->stack, mode);
+  return new HdfsPoolHandler(this, host, poolName, fs, this->stack, mode, this->gateway);
 }
 
 
@@ -117,9 +118,10 @@ HdfsPoolHandler::HdfsPoolHandler(HdfsPoolDriver* driver,
                                      const std::string& poolName,
                                      hdfsFS fs,
                                      StackInstance* si,
-                                     char mode):
+                                     char mode,
+                                     bool gateway ):
   driver(driver), nameNode(nameNode), fs(fs), poolName(poolName), stack(si),
-  mode(mode)
+  mode(mode), gateway(gateway)
 {
   // Nothing
 }
@@ -200,7 +202,6 @@ bool HdfsPoolHandler::replicaIsAvailable(const Replica& replica) throw (DmExcept
         copy.status = Replica::kAvailable;
 	
 	//moving to Catalog interface
-        //this->stack->getINode()->updateReplica(copy);
 	this->stack->getCatalog()->updateReplica(copy);
         hdfsFileInfo* hInfo = hdfsGetPathInfo(this->fs, replica.rfn.c_str());
         if (!hInfo)
@@ -208,7 +209,6 @@ bool HdfsPoolHandler::replicaIsAvailable(const Replica& replica) throw (DmExcept
                             replica.rfn.c_str());
 
 	//moving to Catalog interface
-        //this->stack->getINode()->setSize(replica.fileid, hInfo->mSize);
 	this->stack->getCatalog()->setSize(replica.rfn, hInfo->mSize);
 
         hdfsFreeFileInfo(hInfo, 1);
@@ -228,54 +228,74 @@ bool HdfsPoolHandler::replicaIsAvailable(const Replica& replica) throw (DmExcept
 
 Location HdfsPoolHandler::whereToRead(const Replica& replica) throw (DmException)
 {
-  // To be done
-//  throw DmException(DM_NOT_IMPLEMENTED, "hadoop::getLocation");
-  std::vector<std::string> datanodes;
-  if(hdfsExists(this->fs, replica.rfn.c_str()) == 0){
-    char*** hosts = hdfsGetHosts(this->fs, replica.rfn.c_str(), 0, 1);
-    if(hosts){
-      int i=0;
-      while(hosts[i]) {
-        int j = 0;
-        while(hosts[i][j]) {
-          datanodes.push_back(std::string(hosts[i][j]));
-          ++j;
-        }
-        ++i;
-      }
-      hdfsFreeHosts(hosts);
-    }
-  }
+
+  Location loc;
+
   
-  // Beware! If the file size is 0, no host will be returned
-  // Remit to the name node (for instance)
-  if (datanodes.size() == 0) {
-    throw DmException(DMLITE_NO_REPLICAS, "No replicas found on Hdfs for %s",
-                      replica.rfn.c_str());
-  }
+  if (!this->gateway) {
+	  std::vector<std::string> datanodes;
+	  if(hdfsExists(this->fs, replica.rfn.c_str()) == 0){
+	    char*** hosts = hdfsGetHosts(this->fs, replica.rfn.c_str(), 0, 1);
+	    if(hosts){
+	      int i=0;
+	      while(hosts[i]) {
+	        int j = 0;
+        	while(hosts[i][j]) {
+	          datanodes.push_back(std::string(hosts[i][j]));
+        	  ++j;
+	        }
+        	++i;
+	      }
+	      hdfsFreeHosts(hosts);
+	    }
+	  }
+  
+	  // Beware! If the file size is 0, no host will be returned
+	  // Remit to the name node (for instance)
+	  if (datanodes.size() == 0) {
+	    throw DmException(DMLITE_NO_REPLICAS, "HDFSPoolHandler: No replicas found on Hdfs for %s",
+	                      replica.rfn.c_str());
+  	}
 
-  Location loc;  
-  for (unsigned i = 0; i < datanodes.size(); ++i) {
-    Chunk chunk;
+	  for (unsigned i = 0; i < datanodes.size(); ++i) {
+	    Chunk chunk;
     
-    chunk.host = datanodes[i].c_str();
-    chunk.path = replica.rfn;
-    // TODO: Figure out each chunk size
-    chunk.offset = 0;
+	    chunk.url.domain = datanodes[i].c_str();
+	    chunk.url.path = replica.rfn;
+	    // TODO: Figure out each chunk size
+	    chunk.offset = 0;
 
-    //moving to Catalog Interface
-    //chunk.size   = this->stack->getINode()->extendedStat(replica.fileid).stat.st_size;
-    
-    chunk.size   = this->stack->getCatalog()->extendedStat(replica.rfn,true).stat.st_size;
+    	    chunk.size   = this->stack->getCatalog()->extendedStat(replica.rfn,true).stat.st_size;
 
-    chunk["token"] = generateToken(this->driver->userId,
-                                   chunk.path, 
-                                   this->driver->tokenPasswd,
-                                   this->driver->tokenLife,
-                                   false);
+	    chunk.url.query["token"] = generateToken(this->driver->userId,
+                                             chunk.url.path,
+                                             this->driver->tokenPasswd,
+                                             this->driver->tokenLife,
+                                             false);
+        
     
-    loc.push_back(chunk);
-  }
+	    loc.push_back(chunk);
+  	}
+
+    } else {
+ 
+     	    Chunk chunk;
+    
+            chunk.url.domain = HDFSUtil::getHostName().c_str();
+            chunk.url.path = replica.rfn;
+            chunk.offset = 0;
+            chunk.size   = this->stack->getCatalog()->extendedStat(replica.rfn,true).stat.st_size;
+
+            chunk.url.query["token"] = generateToken(this->driver->userId,
+                                             chunk.url.path,
+                                             this->driver->tokenPasswd,
+                                             this->driver->tokenLife,
+                                             false);
+        
+    
+            loc.push_back(chunk);
+
+   }
   
   
   return loc;
@@ -296,20 +316,13 @@ void HdfsPoolHandler::removeReplica(const Replica& replica) throw (DmException)
 std::string HdfsPoolHandler::getDatanode(void) throw (DmException)
 {
 
-  //getting info on datanodes
-  Pool meta = this->stack->getPoolManager()->getPool(poolName);
-
-  std::string host      = meta.getString("hostname");
-  long        port      = meta.getLong("port");
-
   int size=0;
   int i =0;
   long maxCapacity = 0;
   
-  hdfsDataNodeInfo * infos =hdfsGetDataNodesFromFS(host.c_str(),
-                                                   port,
-                                                   "LIVE",
-                                                   &size);
+  hdfsDataNodeInfo ** infos =hdfsGetDataNodeInfo(this->fs,
+                                                 DN_REPORT_LIVE,
+                                                 &size);
   
   if (size == 0) {
     throw DmException(DMLITE_NO_COMMENT, "No LIVE datanodes found on Hdfs");
@@ -320,7 +333,7 @@ std::string HdfsPoolHandler::getDatanode(void) throw (DmException)
 
   for (i = 0; i<size; i++) 
   {
-      datanodes[infos[i].remaining] = infos[i].hostName;
+     datanodes[infos[i]->remaining] = infos[i]->hostName;
   }
 
   for( std::map<long,std::string>::iterator ii=datanodes.begin(); ii!=datanodes.end(); ++ii)
@@ -358,16 +371,22 @@ Location HdfsPoolHandler::whereToWrite(const std::string& fn) throw (DmException
   // Uri returned_uri;
   Chunk single;
   
- 
-  single.host = this->getDatanode();
-  single.path = fn + ".upload";
+  // check gateway mode
+
+  if (this->gateway)
+      single.url.domain = HDFSUtil::getHostName().c_str();
+  else
+      single.url.domain = this->getDatanode();
+  
+  single.url.path = fn + ".upload";
+
   single.offset = 0;
   single.size   = 0;
-  single["token"] = generateToken(this->driver->userId,
-                                  single.path, 
-                                  this->driver->tokenPasswd,
-                                  this->driver->tokenLife,
-                                  true);
+  single.url.query["token"] = generateToken(this->driver->userId,
+                                            single.url.path,
+                                            this->driver->tokenPasswd,
+                                            this->driver->tokenLife,
+                                            true);
 
   Location loc(1, single);
   

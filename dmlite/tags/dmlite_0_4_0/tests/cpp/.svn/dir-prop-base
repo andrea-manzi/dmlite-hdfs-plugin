@@ -1,0 +1,7 @@
+K 10
+svn:ignore
+V 41
+.test-opendir.cpp.swp
+.test-base.cpp.swp
+
+END

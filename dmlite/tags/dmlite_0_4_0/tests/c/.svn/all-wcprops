@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c
+END
+utils.c
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/utils.c
+END
+test-any.c
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/test-any.c
+END
+test-io.c
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/test-io.c
+END
+utils.h
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/utils.h
+END
+test-pool.c
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/test-pool.c
+END
+plugin_mock.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/plugin_mock.cpp
+END
+test-catalog.c
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/test-catalog.c
+END
+test-converters.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/test-converters.cpp
+END
+test-manager.c
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/test-manager.c
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/CMakeLists.txt
+END
+plugin_mock.h
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/tests/c/plugin_mock.h
+END

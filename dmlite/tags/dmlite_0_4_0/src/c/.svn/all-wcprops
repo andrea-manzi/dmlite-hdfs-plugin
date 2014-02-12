@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c
+END
+Inode-C.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c/Inode-C.cpp
+END
+Private.h
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c/Private.h
+END
+Utils-C.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c/Utils-C.cpp
+END
+Any-C.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c/Any-C.cpp
+END
+IO-C.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c/IO-C.cpp
+END
+PluginManager-C.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c/PluginManager-C.cpp
+END
+Pool-C.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c/Pool-C.cpp
+END
+Catalog-C.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c/Catalog-C.cpp
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/src/c/CMakeLists.txt
+END

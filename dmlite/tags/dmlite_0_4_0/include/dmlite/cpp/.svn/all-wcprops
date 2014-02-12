@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp
+END
+base.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp/base.h
+END
+catalog.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp/catalog.h
+END
+dmlite.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp/dmlite.h
+END
+inode.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp/inode.h
+END
+authn.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp/authn.h
+END
+exceptions.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp/exceptions.h
+END
+poolmanager.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp/poolmanager.h
+END
+pooldriver.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp/pooldriver.h
+END
+io.h
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/include/dmlite/cpp/io.h
+END

@@ -1,0 +1,185 @@
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests
+END
+test-acls.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-acls.cpp
+END
+test-utime.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-utime.cpp
+END
+test-guid.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-guid.cpp
+END
+test-chdir.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-chdir.cpp
+END
+NsOracle.conf
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/NsOracle.conf
+END
+NsMySql.conf
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/NsMySql.conf
+END
+DpmMySql.conf
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/DpmMySql.conf
+END
+test-pools.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-pools.cpp
+END
+test-opendir.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-opendir.cpp
+END
+test-checkperm.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-checkperm.cpp
+END
+test-comment.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-comment.cpp
+END
+test-checksum.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-checksum.cpp
+END
+test-replicas.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-replicas.cpp
+END
+test-create.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-create.cpp
+END
+NsAdapter.conf
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/NsAdapter.conf
+END
+DpmAdapter.conf
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/DpmAdapter.conf
+END
+test-io.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-io.cpp
+END
+test-rename.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-rename.cpp
+END
+test-security.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-security.cpp
+END
+test-split_path.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-split_path.cpp
+END
+test-base.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-base.cpp
+END
+test-hadoop.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-hadoop.cpp
+END
+test-stat.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-stat.cpp
+END
+test-poolcontainer.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-poolcontainer.cpp
+END
+test-split_url.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-split_url.cpp
+END
+test-chown.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-chown.cpp
+END
+test-base.h
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-base.h
+END
+MemcacheNsMySql.conf
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/MemcacheNsMySql.conf
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/CMakeLists.txt
+END
+test-load.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_3_1/tests/test-load.cpp
+END

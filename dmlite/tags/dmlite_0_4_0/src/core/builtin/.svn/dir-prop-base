@@ -1,0 +1,9 @@
+K 10
+svn:ignore
+V 60
+.Authn.cpp.swp
+.Authn.h.swp
+.Catalog.cpp.swp
+.Catalog.h.swp
+
+END

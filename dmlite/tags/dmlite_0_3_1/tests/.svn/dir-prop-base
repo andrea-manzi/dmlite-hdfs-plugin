@@ -1,0 +1,8 @@
+K 10
+svn:ignore
+V 60
+.test-base.cpp.swp
+.test-create.cpp.swp
+.test-utime.cpp.swp
+
+END

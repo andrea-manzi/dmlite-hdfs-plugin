@@ -1,0 +1,20 @@
+#
+# Sample configuration for dmlite.
+#
+
+# First, the plugins to be loaded have to be specified. The order is relevant:
+# the last plugin in the stack will be the first called by the library (LIFO)
+# In this case, the requests will be processed by a profiler (prints method called
+# and timing), then the MySQL backend, then another profiler, and at last, the
+# DPM adapter (calls using the DPM/DPNS API).
+LoadPlugin plugin_fs_io       /usr/lib@LIB_SUFFIX@/dmlite/plugin_adapter.so
+LoadPlugin plugin_adapter_dpm /usr/lib@LIB_SUFFIX@/dmlite/plugin_adapter.so
+
+# This parameter is used by plugin_adapter to know
+# to which host it must connect.
+DpmHost localhost
+
+# Token generation for Filesystem (and Hadoop)
+TokenPassword change-this
+TokenId ip
+TokenLife 1000

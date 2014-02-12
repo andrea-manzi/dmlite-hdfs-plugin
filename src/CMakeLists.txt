@@ -28,6 +28,7 @@ add_library(hdfs SHARED Hdfs.cpp
                         HdfsIO.cpp
 			HdfsNS.cpp
                         HdfsPool.cpp
+			HdfsUtil.cpp
 			Throw.cpp)
 
 target_link_libraries (hdfs dl ${DMLITE_LIBRARIES} ${HDFS_LIBRARIES})

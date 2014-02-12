@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/etc
+END
+dmlite.conf.in
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/etc/dmlite.conf.in
+END
+CMakeLists.txt
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/reps/lcgdm/!svn/ver/7002/dmlite/tags/dmlite_0_4_0/etc/CMakeLists.txt
+END

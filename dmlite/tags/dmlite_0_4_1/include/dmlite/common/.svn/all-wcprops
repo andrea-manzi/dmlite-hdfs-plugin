@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_4_1/include/dmlite/common
+END
+config.h.cmake
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_4_1/include/dmlite/common/config.h.cmake
+END
+errno.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_4_1/include/dmlite/common/errno.h
+END

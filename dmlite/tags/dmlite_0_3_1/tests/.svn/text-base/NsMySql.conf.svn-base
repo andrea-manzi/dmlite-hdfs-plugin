@@ -1,0 +1,9 @@
+LoadPlugin plugin_mysql_ns   ../plugins/mysql/plugin_mysql.so
+
+MySqlHost localhost
+
+MySqlUsername dpmdbuser
+MySqlPassword changethis
+
+SymLinkLimit 3
+

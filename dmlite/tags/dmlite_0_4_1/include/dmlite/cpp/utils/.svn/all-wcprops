@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_4_1/include/dmlite/cpp/utils
+END
+poolcontainer.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_4_1/include/dmlite/cpp/utils/poolcontainer.h
+END
+extensible.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_4_1/include/dmlite/cpp/utils/extensible.h
+END
+urls.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_4_1/include/dmlite/cpp/utils/urls.h
+END
+security.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/reps/lcgdm/!svn/ver/7014/dmlite/tags/dmlite_0_4_1/include/dmlite/cpp/utils/security.h
+END

@@ -14,6 +14,7 @@
 #include <dmlite/cpp/utils/urls.h>
 #include <dmlite/cpp/catalog.h>
 #include <vector>
+#include <stdio.h>
 
 #include <hdfs.h>
 
@@ -28,7 +29,7 @@ class HdfsPoolHandler: public PoolHandler {
 public:
 	HdfsPoolHandler(HdfsPoolDriver*, const std::string& nameNode,
 			const std::string& poolName, hdfsFS fs,
-			StackInstance* si, char mode);
+			StackInstance* si, char mode, bool gateway);
 	~HdfsPoolHandler();
 
 	std::string getPoolType (void) throw (DmException);
@@ -55,6 +56,7 @@ private:
 	std::string    poolName;
 	StackInstance* stack;
 	char           mode;
+	bool 	       gateway;
 };
 
 
@@ -62,7 +64,7 @@ private:
 /// PoolDriver
 class HdfsPoolDriver: public PoolDriver {
 public:
-	HdfsPoolDriver(const std::string&, bool, unsigned) throw (DmException);
+	HdfsPoolDriver(const std::string&, bool, unsigned, bool) throw (DmException);
 	~HdfsPoolDriver();
 
 	std::string getImplId() const throw();
@@ -82,11 +84,12 @@ private:
 
 
 	StackInstance* stack;
-
+	
 	std::string tokenPasswd;
 	bool        tokenUseIp;
 	unsigned    tokenLife;
 	std::string userId;
+        bool 	    gateway;
 };
 
 
@@ -128,19 +131,21 @@ public:
 
 	std::string getImplId() const throw();
 
-	void setStackInstance(StackInstance*) throw (DmException);
 	void setSecurityContext(const SecurityContext*) throw (DmException);
+
+        void setStackInstance(StackInstance* si) throw (DmException);
 
 	IOHandler *createIOHandler(const std::string& pfn,
 			int flags,
 			const Extensible& extras, mode_t mode) throw (DmException);
 
-	void doneWriting(const std::string& pfn,
-			const Extensible& params) throw (DmException);
+	void doneWriting(const Location& loc) throw (DmException);
 private:
 	friend class HdfsIOHandler;
 
 	hdfsFS fs;
+        
+        StackInstance* si_;
 
 	std::string tokenPasswd;
 	bool        tokenUseIp;
@@ -166,11 +171,27 @@ private:
 	std::string nameNode;
 	unsigned    port;
 	std::string uname;
-
+	bool 	    gateway;
 	std::string tokenPasswd;
 	bool        tokenUseIp;
 	unsigned    tokenLife;
 };
+
+void ThrowExceptionFromErrno(int err, const char* extra = 0x00) throw(DmException);
+int   wrapCall(int   ret) throw (DmException);
+void* wrapCall(void* ret) throw (DmException);
+
+class HDFSUtil {
+
+public:
+	HDFSUtil();
+	~HDFSUtil();
+	static void setClasspath(std::string basefolder) throw ();
+        static void setLibraryPath(std::string baseFolder) throw ();
+        static std::string getHostName() throw ();
+
+};
+
 
 };
 

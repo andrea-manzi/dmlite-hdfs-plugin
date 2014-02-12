@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <cstdlib>
 #include <pwd.h>
 #include <grp.h>
 #include <dmlite/cpp/dmlite.h>
@@ -16,6 +17,7 @@
 #include <dmlite/cpp/utils/urls.h>
 #include <dmlite/cpp/catalog.h>
 #include <vector>
+#include <dirent.h>
 
 #include <hdfs.h>
 #include "Hdfs.h"
@@ -68,11 +70,6 @@ public:
 
 	void setOwner(const std::string& path, uid_t newUid, gid_t newGid,bool followSymLink = true) throw (DmException);
 
-	void setSize(const std::string& path,size_t newSize) throw (DmException);
-
-	void setChecksum(const std::string& path,const std::string& csumtype,const std::string& csumvalue) throw (DmException);
-
-	void setAcl(const std::string& path,const Acl& acl) throw (DmException);
 
 	void utime(const std::string& path, const struct utimbuf* buf) throw (DmException);
 
@@ -92,7 +89,6 @@ public:
 
 	Replica getReplicaByRFN(const std::string& rfn) throw (DmException);
 
-
 private:
 	StackInstance* si;
 
@@ -106,6 +102,7 @@ private:
 	unsigned    port;
 	std::string uname;
 	std::string mode;
+
 };
 
 class HdfsPoolManager :public PoolManager {
@@ -137,12 +134,17 @@ public:
 
 	
 	Location whereToRead(const std::string& path) throw (DmException);
-	  
+   
+        Location whereToRead(std::vector<Replica> ) throw (DmException);
 	
 	Location whereToWrite(const std::string& path) throw (DmException);
 
 
 private:
+
+	bool canWrite();
+	bool canRead();
+
 	StackInstance* si;
 	
 
@@ -191,9 +193,6 @@ public:
     unsigned int length;
 };
 
-void ThrowExceptionFromErrno(int err, const char* extra = 0x00) throw(DmException);
-int   wrapCall(int   ret) throw (DmException);
-void* wrapCall(void* ret) throw (DmException);
 
 };
 

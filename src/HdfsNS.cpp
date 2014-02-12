@@ -37,9 +37,35 @@ void HdfsNSFactory::configure(const std::string& key, const std::string& value) 
   else if (key == "HdfsMode") {
       this->mode = value;
     }
+  else if (key == "HadoopHomeLib") {
+	if (value == "")
+                throw DmException(DMLITE_SYSERR(ENOSYS), "HadoopHomeLib is not set ");
+
+      HDFSUtil::setClasspath(value);
+      std::string libFolder = std::string(value);
+      HDFSUtil::setClasspath(libFolder.append(std::string("/lib")));
+  }
+  else if (key == "HdfsHomeLib") {
+         if (value == "")
+               throw DmException(DMLITE_SYSERR(ENOSYS), "HdfsHomeLib is not set ");
+ 
+      HDFSUtil::setClasspath(value);
+      std::string libFolder = std::string(value);
+
+      HDFSUtil::setClasspath(libFolder.append(std::string("/lib")));
+
+  }
+  else if (key == "JavaHome"){
+         if (value == "")
+               throw DmException(DMLITE_SYSERR(ENOSYS), "JavaHome is not set ");
+
+        HDFSUtil::setLibraryPath(value);
+ 
+ }
   else
     throw DmException(DMLITE_CFGERR(DMLITE_UNKNOWN_KEY),
                       "Unrecognised option " + key);
+
 }
 
 Catalog* HdfsNSFactory::createCatalog(PluginManager* pm) throw(DmException)
@@ -78,7 +104,7 @@ HdfsNS::HdfsNS(std::string nameNode,
 		std::string mode)
 
  throw (DmException): nameNode(nameNode),
- port(port),uname(uname),mode(mode),cwd("/dpm")//test
+ port(port),uname(uname),mode(mode),cwd("")
 {
 	fs = hdfsConnectAsUser(nameNode.c_str(),
             port,
@@ -140,7 +166,7 @@ ExtendedStat HdfsNS::extendedStat(const std::string& path,
 
 
 	if (!hInfo)
-		throw DmException(DMLITE_SYSERR(errno), "Could not stat %s",path.c_str());
+		throw DmException(ENOENT, "HDFSNS: Cannot stat %s",path.c_str());
 
 	ExtendedStat exStat;
 
@@ -244,14 +270,14 @@ void HdfsNS::setSecurityContext(const SecurityContext* ctx) throw (DmException)
 //                point to the id of the logical file in the catalog.
 void HdfsNS::addReplica(const Replica& replica) throw (DmException)
 {
-  //TODO
+  //not avilable for hdfs
 }
 
 /// Delete a replica.
 /// @param replica The replica to remove.
 void HdfsNS::deleteReplica(const Replica& replica) throw (DmException)
 {
-//TODO
+//not avaialble for hdfs
 }
 
 /// Get replicas for a file.
@@ -259,27 +285,55 @@ void HdfsNS::deleteReplica(const Replica& replica) throw (DmException)
 std::vector<Replica> HdfsNS::getReplicas(const std::string& path) throw (DmException)
 {
 
-  Replica      replica;
-  ExtendedStat xStat = this->extendedStat(path, true);
+  std::vector<std::string> datanodes;
+  if(hdfsExists(this->fs, path.c_str()) == 0){
+    char*** hosts = hdfsGetHosts(this->fs, path.c_str(), 0, 1);
+    if(hosts){
+      int i=0;
+      while(hosts[i]) {
+        int j = 0;
+        while(hosts[i][j]) {
+          datanodes.push_back(std::string(hosts[i][j]));
+          ++j;
+        }
+        ++i;
+      }
+      hdfsFreeHosts(hosts);
+    }
+  }
+  
+  // Beware! If the file size is 0, no host will be returned
+  // Remit to the name node (for instance)
+  if (datanodes.size() == 0) {
+    throw DmException(DMLITE_NO_REPLICAS, "HdfsNS: No replicas found on Hdfs for %s",
+                      path.c_str());
+  }
 
-  replica.replicaid  = 0;
-  replica.atime      = xStat.stat.st_atime;
-  replica.fileid     = xStat.stat.st_ino;
-  replica.nbaccesses = 0;
-  replica.ptime      = 0;
-  replica.ltime      = 0;
-  replica.type       = Replica::kPermanent;
-  replica.status     = Replica::kAvailable;
-  replica.server     = this->nameNode;
-  replica["pool"]    = std::string("hdfs_pool");
- 
-  std::string dir = this->getWorkingDir();
-  if (dir.empty() || path[0] == '/')
-    replica.rfn = path;
-  else
-    replica.rfn = dir + "/" + path;
+    std::vector<Replica> replicas;
+  
+    for (unsigned i = 0; i < datanodes.size(); ++i) {
+    
+    	Replica      replica;
+  	ExtendedStat xStat = this->extendedStat(path, true);
 
-  return std::vector<Replica>(1, replica);
+  	replica.replicaid  = 0;
+  	replica.atime      = xStat.stat.st_atime;
+  	replica.fileid     = xStat.stat.st_ino;
+  	replica.nbaccesses = 0;
+  	replica.ptime      = 0;
+  	replica.ltime      = 0;
+  	replica.type       = Replica::kPermanent;
+  	replica.status     = Replica::kAvailable;
+  	replica.server     = datanodes[i];
+  	replica["pool"]    = std::string("hdfs_pool");
+	replica.rfn 	   = path;
+
+    	replicas.push_back(replica);
+	}
+  
+
+
+  return replicas;
 
 }
 
@@ -327,38 +381,6 @@ void  HdfsNS::setOwner(const std::string& path, uid_t newUid, gid_t newGid, bool
 
 }
 
-/// Set the size of a file.
-/// @param path    The file to modify.
-/// @param newSize The new file size.
-void  HdfsNS::setSize(const std::string& path,size_t newSize) throw (DmException)
-{
-
-//not available in libhdfs
-
-}
-
-/// Set the checksum of a file.
-/// @param path      The file to modify.
-/// @param csumtype  The checksum type (CS, AD or MD).
-/// @param csumvalue The checksum value.
-void  HdfsNS::setChecksum(const std::string& path, const std::string& csumtype,const std::string& csumvalue) throw (DmException)
-{
-
-//not available in libhdfs
-
-}
-
-/// Set the ACLs
-/// @param path The file to modify.
-/// @param acl  The Access Control List.
-void  HdfsNS::setAcl(const std::string& path,const Acl& acl) throw (DmException)
-{
-
-
-//not available in libhdfs
-
-
-}
 
 /// Set access and/or modification time.
 /// @param path The file path.
@@ -500,8 +522,47 @@ ExtendedStat*  HdfsNS::readDirx(Directory* dir) throw (DmException)
 /// @param rfn The replica file name.
 Replica  HdfsNS::getReplicaByRFN(const std::string& rfn) throw (DmException)
 {
-//TODO
-return Replica();
+
+   std::vector<std::string> datanodes;
+  if(hdfsExists(this->fs, rfn.c_str()) == 0){
+    char*** hosts = hdfsGetHosts(this->fs, rfn.c_str(), 0, 1);
+    if(hosts){
+      int i=0;
+      while(hosts[i]) {
+        int j = 0;
+        while(hosts[i][j]) {
+          datanodes.push_back(std::string(hosts[i][j]));
+          ++j;
+        }
+        ++i;
+      }
+      hdfsFreeHosts(hosts);
+    }
+  }
+
+  // Beware! If the file size is 0, no host will be returned
+  // Remit to the name node (for instance)
+  if (datanodes.size() == 0) {
+    throw DmException(DMLITE_NO_REPLICAS, "No replicas found on Hdfs for %s",
+                      rfn.c_str());
+  }
+	//for now i take the first returned
+        Replica      replica;
+        ExtendedStat xStat = this->extendedStat(rfn, true);
+
+        replica.replicaid  = 0;
+        replica.atime      = xStat.stat.st_atime;
+        replica.fileid     = xStat.stat.st_ino;
+        replica.nbaccesses = 0;
+        replica.ptime      = 0;
+        replica.ltime      = 0;
+        replica.type       = Replica::kPermanent;
+        replica.status     = Replica::kAvailable;
+        replica.server     = datanodes[0];
+        replica["pool"]    = std::string("hdfs_pool");
+        replica.rfn        = rfn;
+
+	return replica;
 }
 
 
@@ -578,25 +639,48 @@ void HdfsPoolManager::setSecurityContext(const SecurityContext* ctx) throw (DmEx
     this->userId = ctx->credentials.clientName;
 }
 
+Location HdfsPoolManager::whereToRead(const std::string& path) throw (DmException)
+{
+  return this->whereToRead(this->si->getCatalog()->getReplicas(path));
+}
+
 
 /// Get a location for a logical name.
 /// @param path     The path to get.
-Location HdfsPoolManager::whereToRead(const std::string& path) throw (DmException)
+Location HdfsPoolManager::whereToRead(std::vector<Replica> replicas ) throw (DmException)
 {
-    ExtendedStat eStat = this->si->getCatalog()->extendedStat(path);
+
+    unsigned i;
+
+    if (this->canRead()) {
+
+	std::vector<Location> available;
+
+	for (i = 0; i < replicas.size(); ++i) {
+
+ 	     try {
+	      PoolHandler* handler = this->si->getPoolDriver("hdfs")->createPoolHandler("hdfs_pool");
+	      available.push_back(handler->whereToRead(replicas[i]));
+	        delete handler;
+	      }
+	      catch (DmException& e) {
+	        if (e.code() != DMLITE_NO_SUCH_POOL) throw;
+	      }
+	  }
+	  //  random one from the available
+	  if (available.size() > 0) {
+	    i = rand() % available.size();
+	    return available[i];
+	  }
+	  else 
+	    throw DmException(DMLITE_NO_REPLICAS,
+                      "None of the replicas is available for reading");
+		
+    }
+    else 
+       throw DmException(DMLITE_SYSERR(ENOSYS), "HdfsPoolManager: the pool is in write only mode");
  
-    Url loc(path);
-   
-    Chunk single;
-    single.host   = this->nameNode;
-    single.path   = loc.path;
-    single.offset = 0;
-    single.size   = eStat.stat.st_size;
-    single["token"] = dmlite::generateToken(this->userId, single.path,
-	                                          this->tokenPasswd,
-                                          this->tokenLife);
-	 
-    return Location(1, single);
+	
 }
 
 
@@ -605,35 +689,55 @@ Location HdfsPoolManager::whereToRead(const std::string& path) throw (DmExceptio
 // @return      The physical location where to write.
 Location HdfsPoolManager::whereToWrite(const std::string& path) throw (DmException)
 {
-    ExtendedStat eStat;
-    bool fileExists = true;
 
-    try {
-	eStat = this->si->getCatalog()->extendedStat(path);
-    }
-    catch (...) {
-	fileExists = true;
-    }
+    if (this->canWrite()){
 
-    if (fileExists)
+
+        std::vector<Pool> pools = this->getPools(PoolManager::kForWrite);
+	if (pools.size() == 0)
+	    throw DmException(ENOSPC, "There are no pools available for writing");
+
+	ExtendedStat eStat;
+    	bool fileExists = true;
+
+    	try {
+		eStat = this->si->getCatalog()->extendedStat(path);
+    	}
+    	catch (...) {
+		fileExists = false;
+    	}	
+
+    	if (fileExists)
 	 throw DmException(DMLITE_SYSERR(ENOSYS), "HdfsPoolManager: the file already exists");
 
+	
+	PoolHandler* handler = this->si->getPoolDriver("hdfs")->createPoolHandler("hdfs_pool");
 
-    Url loc(path);
+	Location loc = handler->whereToWrite(path);
 
-    Chunk single;
-    single.host   = this->nameNode;
-    single.path   = loc.path;
-    single.offset = 0;
-    single.size   = 0;
-    single["sfn"]      = path;
-    single["token"] = dmlite::generateToken(this->userId, single.path,
-                                                this->tokenPasswd,
-                                          this->tokenLife);
+	delete handler;
 
-    return Location(1, single);
+    	return loc;
+  
+	} 
+   else
+	 throw DmException(DMLITE_SYSERR(ENOSYS), "HdfsPoolManager: the pool is in read only mode");
 
 }
+
+
+bool HdfsPoolManager::canWrite(){
+	
+	return (this->mode == "w" || this->mode == "rw" || this->mode == "wr");
+
+}
+
+bool HdfsPoolManager::canRead(){
+       
+       return (this->mode == "r" || this->mode == "rw" || this->mode == "wr");
+
+}
+
 
 
 

@@ -1,0 +1,9 @@
+K 10
+svn:ignore
+V 80
+.test-base.cpp.swp
+.test-create.cpp.swp
+.test-utime.cpp.swp
+.CMakeLists.txt.swp
+
+END
