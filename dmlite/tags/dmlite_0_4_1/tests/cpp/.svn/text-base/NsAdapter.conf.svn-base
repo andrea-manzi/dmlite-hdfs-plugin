@@ -1,3 +1,0 @@
-LoadPlugin plugin_adapter_ns ../../../../dmlite-plugins-adapter/trunk/src/plugin_adapter.so
-
-Host localhost

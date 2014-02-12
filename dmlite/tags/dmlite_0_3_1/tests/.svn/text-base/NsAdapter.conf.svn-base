@@ -1,3 +1,0 @@
-LoadPlugin plugin_adapter_ns ../plugins/adapter/plugin_adapter.so
-
-Host localhost

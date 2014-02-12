@@ -1,7 +1,0 @@
-LoadPlugin plugin_oracle_ns   ../plugins/oracle/plugin_oracle.so
-
-OracleDatabase (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=int11r2-v.cern.ch)(PORT=10121))(ADDRESS=(PROTOCOL=TCP)(HOST=int11r1-v.cern.ch)(PORT=10121))(LOAD_BALANCE=yes)(CONNECT_DATA=(SERVER=DEDICATED)(SERVICE_NAME=lcg_fts_int11r.cern.ch)))
-OracleUsername LCG_FTS_SA3TESTS
-OraclePassword change-this
-
-SymLinkLimit 3
