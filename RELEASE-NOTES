@@ -1,3 +1,13 @@
+* Tue 6 May 2014 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.5-1
+- added Multi gateway support
+- implemented file buffering for write operations
+- added HdfsTmpFolder var
+
+* Mon Mar 10 2014 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.4-1
+- implemented pread on HDFSIOHandler
+- removed O_RDWR mode on HDFSIOHandler ( cause not supported by HDFS)
+- added logging with syslog
+
 * Tue Dec 17 2013 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.3
 - added HDFSGateway mode
 

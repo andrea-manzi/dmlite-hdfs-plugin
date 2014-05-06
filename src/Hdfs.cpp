@@ -3,13 +3,15 @@
 /// @author  Alexandre Beche <abeche@cern.ch>
 /// @author  Andrea Manzi <andrea.manzi@cern.ch>
 #include "Hdfs.h"
+#include <syslog.h>
+
 
 using namespace dmlite;
 
 
 // HdfsFactory implementation
 HdfsFactory::HdfsFactory() throw (DmException):
-      nameNode("localhost"), port(8020), uname("dpmmgr"), gateway(false),
+      nameNode("localhost"), port(8020), uname("dpmmgr"), gatewayMode(false),tmpFolder("/tmp"),
       tokenPasswd("default"), tokenUseIp(true), tokenLife(600)
 {
   // Nothing
@@ -38,16 +40,26 @@ void HdfsFactory::configure(const std::string& key, const std::string& value) th
     this->uname = value;
   }
   else if (key == "HdfsGateway") {
-    this->gateway = (strcasecmp(value.c_str(), "true") == 0);
-  }
+    this->gatewayMode = true;
+    std::stringstream gatewayString(value);
+    std::string gateway;
+    while( std::getline( gatewayString , gateway , ',' ) ) {
+    	 this->gateways.push_back( HDFSUtil::trim(gateway) );
+    }
 
-   else if (key == "HadoopHomeLib") {
+  }
+  else if (key == "HdfsTmpFolder") {
+    this->tmpFolder = value;
+  }
+  else if (key == "HadoopHomeLib") {
         if (value == "")
                 throw DmException(DMLITE_SYSERR(ENOSYS), "HadoopHomeLib is not set ");
       //setting CLASSPATH
       HDFSUtil::setClasspath(value);
       std::string libFolder = std::string(value);
       HDFSUtil::setClasspath(libFolder.append(std::string("/lib")));
+
+
   }
   else if (key == "HdfsHomeLib") {
          if (value == "")
@@ -59,16 +71,17 @@ void HdfsFactory::configure(const std::string& key, const std::string& value) th
 
       HDFSUtil::setClasspath(libFolder.append(std::string("/lib")));
 
+
   }
 
    else if (key == "JavaHome"){
-         if (value == "")
+      if (value == "")
                throw DmException(DMLITE_SYSERR(ENOSYS), "JavaHome is not set ");
 
-        HDFSUtil::setLibraryPath(value);
+      HDFSUtil::setLibraryPath(value);
+	
  
  }
-
 
   else
     throw DmException(DMLITE_CFGERR(DMLITE_UNKNOWN_KEY),
@@ -80,7 +93,7 @@ void HdfsFactory::configure(const std::string& key, const std::string& value) th
 IODriver* HdfsFactory::createIODriver(PluginManager* pm) throw (DmException)
 {
   return new HdfsIODriver(this->nameNode, this->port, this->uname,
-                            this->tokenPasswd, this->tokenUseIp);
+                            this->tokenPasswd, this->tokenUseIp, this->tmpFolder);
 }
 
 
@@ -97,7 +110,8 @@ PoolDriver* HdfsFactory::createPoolDriver() throw (DmException)
   return new HdfsPoolDriver(this->tokenPasswd,
                               this->tokenUseIp,
                               this->tokenLife,
-			      this->gateway);
+			      this->gatewayMode,
+			      this->gateways);
 }
 
 

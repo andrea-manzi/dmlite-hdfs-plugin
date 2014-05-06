@@ -16,7 +16,7 @@ void HDFSUtil::setClasspath(std::string basefolder) throw ()
   classpath = getenv ("CLASSPATH");
   
   if (classpath == NULL)
-	classpath = "";
+  	classpath = "";
   
   //creating the string
   std::string classpathString = std::string(classpath);
@@ -43,12 +43,18 @@ void HDFSUtil::setClasspath(std::string basefolder) throw ()
 
 }
 
-std::string  HDFSUtil::getHostName() throw ()
+std::string  HDFSUtil::getRandomGateway(const std::vector<std::string>& gateways) throw ()
 {
-	char  hostname[1024];
-        hostname[1023] = '\0';
-        gethostname(hostname, 1023);
-	return std::string(hostname);
+	if (gateways.size() == 1)
+			return gateways.at(0);
+	else {
+	        //initilialize rand
+        	int random;
+	        std::stringstream strs;
+	        srand (time(NULL));
+	        random =rand() % gateways.size();
+		return gateways.at(random);
+	}
 
 }
 
@@ -59,7 +65,7 @@ void  HDFSUtil::setLibraryPath(std::string java_home) throw ()
   path = getenv ("LD_LIBRARY_PATH");
 
   if (path == NULL)
-       path = "";
+	  path ="";
 
   //creating the string
   std::string pathString =  std::string(path);
@@ -72,5 +78,36 @@ void  HDFSUtil::setLibraryPath(std::string java_home) throw ()
   setenv("LD_LIBRARY_PATH", pathString.c_str(),true);
 }
 
+
+int HDFSUtil::mkdirs(const char *dir) throw ()
+{
+        char tmp[256];
+        char *p = NULL;
+        size_t len;
+
+        snprintf(tmp, sizeof(tmp),"%s",dir);
+        len = strlen(tmp);
+        if(tmp[len - 1] == '/')
+                tmp[len - 1] = 0;
+        for(p = tmp + 1; *p; p++)
+                if(*p == '/') {
+                        *p = 0;
+                        mkdir(tmp, S_IRWXU);
+                        *p = '/';
+                }
+        return mkdir(tmp, S_IRWXU);
+}
+
+std::string HDFSUtil::trim(std::string& str) throw ()
+{
+    std::string::size_type begin=0;
+    std::string::size_type end=str.size()-1;
+    while(begin<=end && (str[begin]<=0x20 || str[begin]==0x7f))
+        ++begin;
+    while(end>begin && (str[end]<=0x20 || str[end]==0x7f))
+      --end;
+    str = str.substr(begin, end - begin + 1);
+    return str;
+}
 
 

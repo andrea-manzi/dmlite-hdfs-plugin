@@ -5,7 +5,7 @@ project (dmlite-plugins-hdfs)
 # Version
 set(dmlite_plugins_hdfs_MAJOR 0)
 set(dmlite_plugins_hdfs_MINOR 6)
-set(dmlite_plugins_hdfs_PATCH 3)
+set(dmlite_plugins_hdfs_PATCH 5)
 
 # Lib suffix
 if (CMAKE_SIZEOF_VOID_P EQUAL 4)

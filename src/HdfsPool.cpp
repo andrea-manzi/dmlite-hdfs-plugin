@@ -6,16 +6,22 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <syslog.h>
+
 
 using namespace dmlite;
 
 HdfsPoolDriver::HdfsPoolDriver(const std::string& passwd,
                                    bool useIp,
         	                   unsigned lifetime,
-				   bool gateway) throw (DmException):
- stack(0x00), tokenPasswd(passwd), tokenUseIp(useIp), tokenLife(lifetime), gateway(gateway)
+				   bool gatewayMode,
+				   const std::vector<std::string>& gateways) throw (DmException):
+ stack(0x00), tokenPasswd(passwd), tokenUseIp(useIp), tokenLife(lifetime), gatewayMode(gatewayMode)
 {
-  // Nothing
+
+  if (gatewayMode)
+	this->gateways = std::vector<std::string>(gateways);
+
 }
 
 
@@ -80,7 +86,7 @@ PoolHandler* HdfsPoolDriver::createPoolHandler(const std::string& poolName) thro
     throw DmException(DMLITE_SYSERR(errno),
                       "Could not create a HdfsPoolDriver: cannot connect to Hdfs");
     
-  return new HdfsPoolHandler(this, host, poolName, fs, this->stack, mode, this->gateway);
+  return new HdfsPoolHandler(this, host, poolName, fs, this->stack, mode);
 }
 
 
@@ -118,12 +124,11 @@ HdfsPoolHandler::HdfsPoolHandler(HdfsPoolDriver* driver,
                                      const std::string& poolName,
                                      hdfsFS fs,
                                      StackInstance* si,
-                                     char mode,
-                                     bool gateway ):
+                                     char mode):
   driver(driver), nameNode(nameNode), fs(fs), poolName(poolName), stack(si),
-  mode(mode), gateway(gateway)
+  mode(mode)
 {
-  // Nothing
+//nothing to do 
 }
 
 
@@ -232,7 +237,7 @@ Location HdfsPoolHandler::whereToRead(const Replica& replica) throw (DmException
   Location loc;
 
   
-  if (!this->gateway) {
+  if (!this->driver->gatewayMode) {
 	  std::vector<std::string> datanodes;
 	  if(hdfsExists(this->fs, replica.rfn.c_str()) == 0){
 	    char*** hosts = hdfsGetHosts(this->fs, replica.rfn.c_str(), 0, 1);
@@ -281,7 +286,7 @@ Location HdfsPoolHandler::whereToRead(const Replica& replica) throw (DmException
  
      	    Chunk chunk;
     
-            chunk.url.domain = HDFSUtil::getHostName().c_str();
+            chunk.url.domain = HDFSUtil::getRandomGateway(this->driver->gateways).c_str();
             chunk.url.path = replica.rfn;
             chunk.offset = 0;
             chunk.size   = this->stack->getCatalog()->extendedStat(replica.rfn,true).stat.st_size;
@@ -373,8 +378,8 @@ Location HdfsPoolHandler::whereToWrite(const std::string& fn) throw (DmException
   
   // check gateway mode
 
-  if (this->gateway)
-      single.url.domain = HDFSUtil::getHostName().c_str();
+  if (this->driver->gatewayMode)
+      single.url.domain = HDFSUtil::getRandomGateway(this->driver->gateways).c_str();
   else
       single.url.domain = this->getDatanode();
   

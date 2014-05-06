@@ -15,10 +15,13 @@
 #include <dmlite/cpp/catalog.h>
 #include <vector>
 #include <stdio.h>
+#include <fstream>
 
 #include <hdfs.h>
 
 #define PATH_MAX 4096
+#define BUFF_SIZE 65536
+
 
 namespace dmlite {
 
@@ -29,7 +32,7 @@ class HdfsPoolHandler: public PoolHandler {
 public:
 	HdfsPoolHandler(HdfsPoolDriver*, const std::string& nameNode,
 			const std::string& poolName, hdfsFS fs,
-			StackInstance* si, char mode, bool gateway);
+			StackInstance* si, char mode);
 	~HdfsPoolHandler();
 
 	std::string getPoolType (void) throw (DmException);
@@ -50,13 +53,10 @@ private:
 	HdfsPoolDriver* driver;
 
 	std::string    nameNode;
-
-
 	hdfsFS         fs;
 	std::string    poolName;
 	StackInstance* stack;
 	char           mode;
-	bool 	       gateway;
 };
 
 
@@ -64,7 +64,7 @@ private:
 /// PoolDriver
 class HdfsPoolDriver: public PoolDriver {
 public:
-	HdfsPoolDriver(const std::string&, bool, unsigned, bool) throw (DmException);
+	HdfsPoolDriver(const std::string&, bool, unsigned, bool,const std::vector<std::string>&) throw (DmException);
 	~HdfsPoolDriver();
 
 	std::string getImplId() const throw();
@@ -81,15 +81,14 @@ public:
 
 private:
 	friend class HdfsPoolHandler;
-
-
 	StackInstance* stack;
 	
 	std::string tokenPasswd;
 	bool        tokenUseIp;
 	unsigned    tokenLife;
 	std::string userId;
-        bool 	    gateway;
+        bool 	    gatewayMode;
+	std::vector<std::string> gateways;
 };
 
 
@@ -111,13 +110,24 @@ public:
 	off_t  tell (void) throw (DmException);
 	void   flush(void) throw (DmException);
 	bool   eof  (void) throw (DmException);
+        size_t pread(void* buffer, size_t count, off_t offset) throw (DmException);
+        struct stat fstat(void) throw (DmException);
+        size_t writeToHDFS(const char* buffer, size_t count) throw (DmException);
+        int    copyToHDFS(void) throw (DmException);
+
 
 private:
 	HdfsIODriver* driver;
-
+        hdfsFS fs;
 	hdfsFile file;  // Hdfs file descriptor
 	bool     isEof; // Set to true if end of the file is reached
 	std::string path;
+	std::string tmpFolder;// temporary folder
+	bool isWriting; //set for writing operations;
+        int  temp_fd; //file descriptor of the tmp file used to buffer write requests
+        char temp_path[PATH_MAX];
+	
+
 };
 
 
@@ -126,7 +136,7 @@ private:
 class HdfsIODriver: public IODriver {
 public:
 	HdfsIODriver(const std::string&, unsigned, const std::string&,
-			const std::string&, bool);
+			const std::string&, bool, const std::string&);
 	~HdfsIODriver();
 
 	std::string getImplId() const throw();
@@ -143,13 +153,17 @@ public:
 private:
 	friend class HdfsIOHandler;
 
-	hdfsFS fs;
-        
         StackInstance* si_;
 
+        std::string nameNode;
+	unsigned    port;
+        std::string uname;
 	std::string tokenPasswd;
 	bool        tokenUseIp;
 	std::string userId;
+	std::string tmpFolder;
+	void updateReplica(hdfsFS fs, std::string& final) throw (DmException);
+
 };
 
 
@@ -171,10 +185,13 @@ private:
 	std::string nameNode;
 	unsigned    port;
 	std::string uname;
-	bool 	    gateway;
+	bool 	    gatewayMode;
+	std::vector<std::string> gateways;
+	std::string tmpFolder;
 	std::string tokenPasswd;
 	bool        tokenUseIp;
 	unsigned    tokenLife;
+	
 };
 
 void ThrowExceptionFromErrno(int err, const char* extra = 0x00) throw(DmException);
@@ -188,7 +205,9 @@ public:
 	~HDFSUtil();
 	static void setClasspath(std::string basefolder) throw ();
         static void setLibraryPath(std::string baseFolder) throw ();
-        static std::string getHostName() throw ();
+	static std::string getRandomGateway(const std::vector<std::string>& gateways) throw();
+	static int mkdirs(const char *dir) throw ();
+        static std::string trim(std::string& str) throw ();
 
 };
 
