@@ -62,6 +62,8 @@ void HdfsNSFactory::configure(const std::string& key, const std::string& value) 
         HDFSUtil::setLibraryPath(value);
  
  }
+ else if (key == "MapFile")
+    this->mapFile = value;
   else
     throw DmException(DMLITE_CFGERR(DMLITE_UNKNOWN_KEY),
                       "Unrecognised option " + key);
@@ -89,6 +91,11 @@ PoolManager* HdfsNSFactory::createPoolManager(PluginManager * pm) throw(DmExcept
 			this->tokenPasswd,
 			this->tokenUseIp,
 			this->tokenLife);
+}
+
+Authn* HdfsNSFactory::createAuthn(PluginManager*) throw (DmException)
+{       
+  return new HdfsAuthn(this->mapFile);
 }
 
 
@@ -201,6 +208,52 @@ ExtendedStat HdfsNS::extendedStat(const std::string& path,
 
 }
 
+ExtendedStat HdfsNS::extendedStatByRFN(const std::string& rfn) throw (DmException)
+{
+
+  //remove the host info if present
+  std::string uri_string = std::string(rfn);
+
+  size_t index = uri_string.find(':');
+
+  if (index!=std::string::npos){
+          uri_string = uri_string.substr(index+1, rfn.size());
+  }
+
+   hdfsFileInfo* hInfo = hdfsGetPathInfo(this->fs, uri_string.c_str());
+
+   if (!hInfo)
+        throw DmException(ENOENT, "HDFSNS: Cannot stat %s",uri_string.c_str());
+
+   ExtendedStat exStat;
+
+
+   exStat.stat.st_atim.tv_sec = hInfo->mLastAccess;
+   exStat.stat.st_ctim.tv_sec = hInfo->mLastMod;
+   exStat.stat.st_mtim.tv_sec = hInfo->mLastMod;
+
+   exStat.stat.st_gid   = 0;
+   exStat.stat.st_uid   = 0;
+
+   exStat.stat.st_nlink = (hInfo->mKind == kObjectKindDirectory) ? 3 : 1;
+   exStat.stat.st_ino   = 0;
+   exStat.stat.st_mode  =  (hInfo->mKind == kObjectKindDirectory) ? (S_IFDIR | hInfo->mPermissions) :  (S_IFREG | hInfo->mPermissions);
+
+   exStat.stat.st_size  = (hInfo->mKind == kObjectKindDirectory) ? 4096 : hInfo->mSize;
+   exStat.status  = ExtendedStat::kOnline;
+   exStat["type"]  = hInfo->mKind;
+   exStat.parent = 0;
+   exStat["pool"] = std::string("hdfs_pool");
+
+   std::vector<std::string> components = Url::splitPath(uri_string);
+   exStat.name = components.back();
+
+   hdfsFreeFileInfo(hInfo, 1);
+
+   return exStat;
+
+}
+
 void HdfsNS::unlink(const std::string& path) throw (DmException)
 {
 	if (hdfsDelete(this->fs,path.c_str(),1)!= 0)
@@ -276,6 +329,11 @@ void HdfsNS::addReplica(const Replica& replica) throw (DmException)
 /// Delete a replica.
 /// @param replica The replica to remove.
 void HdfsNS::deleteReplica(const Replica& replica) throw (DmException)
+{
+//not avaialble for hdfs
+}
+
+void HdfsNS::updateReplica(const Replica& replica) throw (DmException)
 {
 //not avaialble for hdfs
 }
@@ -381,6 +439,15 @@ void  HdfsNS::setOwner(const std::string& path, uid_t newUid, gid_t newGid, bool
 
 }
 
+void HdfsNS::setSize(const std::string& path, size_t newSize) throw (DmException)
+{
+//not avaialble for hdfs
+}
+
+void HdfsNS::setChecksum(const std::string& path, const std::string& csumtype, const std::string& csumvalue) throw (DmException)
+{
+//not avaialble for hdfs
+}
 
 /// Set access and/or modification time.
 /// @param path The file path.
@@ -739,12 +806,13 @@ bool HdfsPoolManager::canRead(){
 }
 
 
-
-
 static void registerNSHdfs(PluginManager* pm) throw (DmException)
 {
-  pm->registerCatalogFactory(new HdfsNSFactory());
-  pm->registerPoolManagerFactory(new HdfsNSFactory());
+  HdfsNSFactory* hdfsNSFactory = new HdfsNSFactory();
+
+  pm->registerAuthnFactory(hdfsNSFactory);
+  pm->registerCatalogFactory(hdfsNSFactory);
+  pm->registerPoolManagerFactory(hdfsNSFactory);
 }
 
 

@@ -21,6 +21,7 @@
 
 #include <hdfs.h>
 #include "Hdfs.h"
+#include "HdfsAuthn.h"
 
 
 #define PATH_MAX 4096
@@ -52,11 +53,13 @@ public:
 	ExtendedStat extendedStat(const std::string& path,
 			bool followSym = true) throw (DmException);
 
-
+	ExtendedStat extendedStatByRFN(const std::string& rfn) throw (DmException);
 
 	void addReplica(const Replica& replica) throw (DmException);
 
 	void deleteReplica(const Replica& replica) throw (DmException);
+
+        void updateReplica(const Replica& replica) throw (DmException);
 
 	std::vector<Replica> getReplicas(const std::string& path) throw (DmException);
 
@@ -70,7 +73,10 @@ public:
 
 	void setOwner(const std::string& path, uid_t newUid, gid_t newGid,bool followSymLink = true) throw (DmException);
 
-
+	void setSize(const std::string& path, size_t newSize) throw (DmException);
+  
+        void setChecksum(const std::string& path, const std::string& csumtype, const std::string& csumvalue) throw (DmException);
+      
 	void utime(const std::string& path, const struct utimbuf* buf) throw (DmException);
 
 	Directory* openDir(const std::string& path) throw (DmException);
@@ -102,6 +108,7 @@ private:
 	unsigned    port;
 	std::string uname;
 	std::string mode;
+        
 
 };
 
@@ -161,7 +168,7 @@ private:
 };
 
 
-class HdfsNSFactory: public CatalogFactory, public PoolManagerFactory {
+class HdfsNSFactory: public CatalogFactory, public PoolManagerFactory,public AuthnFactory  {
 public:
 	HdfsNSFactory() throw (DmException);
 	~HdfsNSFactory() throw (DmException);
@@ -169,6 +176,7 @@ public:
 	void configure(const std::string& key, const std::string& value) throw (DmException);
 	Catalog* createCatalog(PluginManager*) throw (DmException);
     	PoolManager* createPoolManager(PluginManager* pm) throw (DmException);
+        Authn* createAuthn(PluginManager* pm) throw (DmException);
 
 private:
 	hdfsFS fs;
@@ -180,7 +188,7 @@ private:
         std::string tokenPasswd;
         bool        tokenUseIp;
         unsigned    tokenLife;
-
+	std::string mapFile;
 };
 
 class HDFSDir: public Directory {

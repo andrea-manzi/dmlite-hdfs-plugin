@@ -14,13 +14,15 @@ using namespace dmlite;
 HdfsPoolDriver::HdfsPoolDriver(const std::string& passwd,
                                    bool useIp,
         	                   unsigned lifetime,
-				   bool gatewayMode,
 				   const std::vector<std::string>& gateways) throw (DmException):
- stack(0x00), tokenPasswd(passwd), tokenUseIp(useIp), tokenLife(lifetime), gatewayMode(gatewayMode)
+ stack(0x00), tokenPasswd(passwd), tokenUseIp(useIp), tokenLife(lifetime)
 {
 
-  if (gatewayMode)
-	this->gateways = std::vector<std::string>(gateways);
+  this->gateways = std::vector<std::string>(gateways);
+
+  Log(Logger::Lvl4,hdfslogmask,hdfslogname," Pool Driver created");
+
+
 
 }
 
@@ -195,10 +197,23 @@ bool HdfsPoolHandler::poolIsAvailable(bool write) throw (DmException)
 
 bool HdfsPoolHandler::replicaIsAvailable(const Replica& replica) throw (DmException)
 { 
+
+  Log(Logger::Lvl4,hdfslogmask,hdfslogname," checking replica " << replica.rfn.c_str());
+
+   //remove the host info if present
+  std::string _rfn = std::string(replica.rfn);
+
+  size_t index = _rfn.find(':');
+
+  if (index!=std::string::npos){
+	  _rfn = _rfn.substr(index+1, _rfn.size());
+  }
+
   switch (replica.status) {
+	
     // Need to check if finished, and set the file size in that case
     case Replica::kBeingPopulated:
-      if (hdfsExists(this->fs, replica.rfn.c_str()) != 0) {
+      if (hdfsExists(this->fs, _rfn.c_str()) != 0) {
         return false;
       }
       // It does exist, so update status and size
@@ -208,13 +223,13 @@ bool HdfsPoolHandler::replicaIsAvailable(const Replica& replica) throw (DmExcept
 	
 	//moving to Catalog interface
 	this->stack->getCatalog()->updateReplica(copy);
-        hdfsFileInfo* hInfo = hdfsGetPathInfo(this->fs, replica.rfn.c_str());
+        hdfsFileInfo* hInfo = hdfsGetPathInfo(this->fs, _rfn.c_str());
         if (!hInfo)
           throw DmException(DMLITE_SYSERR(errno), "Could not stat %s",
-                            replica.rfn.c_str());
+                            _rfn.c_str());
 
 	//moving to Catalog interface
-	this->stack->getCatalog()->setSize(replica.rfn, hInfo->mSize);
+	this->stack->getCatalog()->setSize(_rfn, hInfo->mSize);
 
         hdfsFreeFileInfo(hInfo, 1);
       }      
@@ -222,7 +237,7 @@ bool HdfsPoolHandler::replicaIsAvailable(const Replica& replica) throw (DmExcept
       return true;
     // If marked as available, if it actually exists
     case Replica::kAvailable:
-      return (hdfsExists(this->fs, replica.rfn.c_str()) == 0);
+      return (hdfsExists(this->fs, _rfn.c_str()) == 0);
     // Being deleted, so no
     default:
       return false;
@@ -235,74 +250,32 @@ Location HdfsPoolHandler::whereToRead(const Replica& replica) throw (DmException
 {
 
   Location loc;
-
   
-  if (!this->driver->gatewayMode) {
-	  std::vector<std::string> datanodes;
-	  if(hdfsExists(this->fs, replica.rfn.c_str()) == 0){
-	    char*** hosts = hdfsGetHosts(this->fs, replica.rfn.c_str(), 0, 1);
-	    if(hosts){
-	      int i=0;
-	      while(hosts[i]) {
-	        int j = 0;
-        	while(hosts[i][j]) {
-	          datanodes.push_back(std::string(hosts[i][j]));
-        	  ++j;
-	        }
-        	++i;
-	      }
-	      hdfsFreeHosts(hosts);
-	    }
-	  }
-  
-	  // Beware! If the file size is 0, no host will be returned
-	  // Remit to the name node (for instance)
-	  if (datanodes.size() == 0) {
-	    throw DmException(DMLITE_NO_REPLICAS, "HDFSPoolHandler: No replicas found on Hdfs for %s",
-	                      replica.rfn.c_str());
-  	}
+  Chunk chunk;
+		
+  //TO CHECK
+  //remove the host info if present
+  std::string _rfn = std::string(replica.rfn);
 
-	  for (unsigned i = 0; i < datanodes.size(); ++i) {
-	    Chunk chunk;
+  size_t index = _rfn.find(':');
+
+  if (index!=std::string::npos){
+         _rfn = _rfn.substr(index+1, _rfn.size());
+  }
     
-	    chunk.url.domain = datanodes[i].c_str();
-	    chunk.url.path = replica.rfn;
-	    // TODO: Figure out each chunk size
-	    chunk.offset = 0;
+  chunk.url.domain = HDFSUtil::getRandomGateway(this->driver->gateways).c_str();
+  chunk.url.path = _rfn;
+  chunk.offset = 0;
+  chunk.size   = this->stack->getCatalog()->extendedStat(_rfn,true).stat.st_size;
 
-    	    chunk.size   = this->stack->getCatalog()->extendedStat(replica.rfn,true).stat.st_size;
-
-	    chunk.url.query["token"] = generateToken(this->driver->userId,
-                                             chunk.url.path,
-                                             this->driver->tokenPasswd,
-                                             this->driver->tokenLife,
-                                             false);
-        
+  chunk.url.query["token"] = generateToken(this->driver->userId,
+                               chunk.url.path,
+                               this->driver->tokenPasswd,
+                               this->driver->tokenLife,
+                               false);
     
-	    loc.push_back(chunk);
-  	}
+  loc.push_back(chunk);
 
-    } else {
- 
-     	    Chunk chunk;
-    
-            chunk.url.domain = HDFSUtil::getRandomGateway(this->driver->gateways).c_str();
-            chunk.url.path = replica.rfn;
-            chunk.offset = 0;
-            chunk.size   = this->stack->getCatalog()->extendedStat(replica.rfn,true).stat.st_size;
-
-            chunk.url.query["token"] = generateToken(this->driver->userId,
-                                             chunk.url.path,
-                                             this->driver->tokenPasswd,
-                                             this->driver->tokenLife,
-                                             false);
-        
-    
-            loc.push_back(chunk);
-
-   }
-  
-  
   return loc;
 }
 
@@ -318,51 +291,6 @@ void HdfsPoolHandler::removeReplica(const Replica& replica) throw (DmException)
   }
 }
 
-std::string HdfsPoolHandler::getDatanode(void) throw (DmException)
-{
-
-  int size=0;
-  int i =0;
-  long maxCapacity = 0;
-  
-  hdfsDataNodeInfo ** infos =hdfsGetDataNodeInfo(this->fs,
-                                                 DN_REPORT_LIVE,
-                                                 &size);
-  
-  if (size == 0) {
-    throw DmException(DMLITE_NO_COMMENT, "No LIVE datanodes found on Hdfs");
-  }
-
-  std::map<long,std::string> datanodes;
-
-
-  for (i = 0; i<size; i++) 
-  {
-     datanodes[infos[i]->remaining] = infos[i]->hostName;
-  }
-
-  for( std::map<long,std::string>::iterator ii=datanodes.begin(); ii!=datanodes.end(); ++ii)
-  {
-        if (maxCapacity < (*ii).first)
-        {
-            maxCapacity= (*ii).first;
-        }
-   }
-  
-   std::string datanode=datanodes[maxCapacity];
-
-   //remove the port info if present
-   size_t index = datanode.find(':');
-
-   if (index!=std::string::npos){
-        datanode = datanode.substr(0,index-1);
-   }
-  
-  hdfsFreeDataNodeInfo(infos, size);
-
-  return datanode;
-
-}
 
 Location HdfsPoolHandler::whereToWrite(const std::string& fn) throw (DmException)
 {
@@ -376,12 +304,7 @@ Location HdfsPoolHandler::whereToWrite(const std::string& fn) throw (DmException
   // Uri returned_uri;
   Chunk single;
   
-  // check gateway mode
-
-  if (this->driver->gatewayMode)
-      single.url.domain = HDFSUtil::getRandomGateway(this->driver->gateways).c_str();
-  else
-      single.url.domain = this->getDatanode();
+  single.url.domain = HDFSUtil::getRandomGateway(this->driver->gateways).c_str();
   
   single.url.path = fn + ".upload";
 

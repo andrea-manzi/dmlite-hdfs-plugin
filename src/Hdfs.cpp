@@ -8,13 +8,16 @@
 
 using namespace dmlite;
 
+Logger::bitmask dmlite::hdfslogmask = 0;
+Logger::component dmlite::hdfslogname = "Hdfs";
 
 // HdfsFactory implementation
 HdfsFactory::HdfsFactory() throw (DmException):
-      nameNode("localhost"), port(8020), uname("dpmmgr"), gatewayMode(false),tmpFolder("/tmp"),
+      nameNode("localhost"), port(8020), uname("dpmmgr"), tmpFolder("/tmp"),
       tokenPasswd("default"), tokenUseIp(true), tokenLife(600)
 {
   // Nothing
+  hdfslogmask = Logger::get()->getMask(hdfslogname);
 }
 
 
@@ -40,7 +43,6 @@ void HdfsFactory::configure(const std::string& key, const std::string& value) th
     this->uname = value;
   }
   else if (key == "HdfsGateway") {
-    this->gatewayMode = true;
     std::stringstream gatewayString(value);
     std::string gateway;
     while( std::getline( gatewayString , gateway , ',' ) ) {
@@ -110,7 +112,6 @@ PoolDriver* HdfsFactory::createPoolDriver() throw (DmException)
   return new HdfsPoolDriver(this->tokenPasswd,
                               this->tokenUseIp,
                               this->tokenLife,
-			      this->gatewayMode,
 			      this->gateways);
 }
 
@@ -122,7 +123,7 @@ static void registerPluginHdfs(PluginManager* pm) throw (DmException)
 
 static void registerIOHdfs(PluginManager* pm) throw (DmException)
 {
-  pm->registerIOFactory(new HdfsFactory());
+  pm->registerIODriverFactory(new HdfsFactory());
 }
 
 

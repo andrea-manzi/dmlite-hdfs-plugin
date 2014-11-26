@@ -1,5 +1,5 @@
 Name:		dmlite-plugins-hdfs
-Version:	0.6.5
+Version:	0.7.1
 Release:	1%{?dist}
 Summary:	HDFS plugin for dmlite
 Group:		Applications/Internet
@@ -13,11 +13,12 @@ Source0:	%{name}-%{version}.tar.gz
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	cmake%{?_isa}
-BuildRequires:	dmlite-devel >= 0.6.2
+BuildRequires:	dmlite-devel >= 0.7.0
+BuildRequires:  dmlite-private-devel >= 0.7.0
 BuildRequires:	hadoop-libhdfs
 BuildRequires:	java-devel
 
-Requires:	dmlite-libs >= 0.6.2
+Requires:	dmlite-libs >= 0.7.0
 Requires: 	java-devel
 
 %description
@@ -48,7 +49,17 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/dmlite.conf.d/*
 
 %changelog
-* Tue 6 May 2014 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.5-1
+* Wed Nov 26 2014 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.1-1
+- added simple Authn 
+- added some missing functions for NS
+
+- removed getDatanode and the usage of the libhdfs extensions. Fully replaced by usage of HdfsGateway
+* Fri Jul 11 2014 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.0-1
+- adapted to dmlite 0.7.0
+- added new logging
+- removed getDatanode and the usage of the libhdfs extensions. Fully replaced by usage of HdfsGateway
+
+* Tue May 6 2014 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.5-1
 - added Multi gateway support
 - implemented file buffering for write operations
 - added HdfsTmpFolder var

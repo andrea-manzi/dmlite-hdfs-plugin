@@ -4,8 +4,13 @@ project (dmlite-plugins-hdfs)
 
 # Version
 set(dmlite_plugins_hdfs_MAJOR 0)
-set(dmlite_plugins_hdfs_MINOR 6)
-set(dmlite_plugins_hdfs_PATCH 5)
+set(dmlite_plugins_hdfs_MINOR 7)
+set(dmlite_plugins_hdfs_PATCH 1)
+
+#--------------------------------
+# needed for Boost 2.8
+set (Boost_NO_BOOST_CMAKE ON)
+#---------------------------------
 
 # Lib suffix
 if (CMAKE_SIZEOF_VOID_P EQUAL 4)

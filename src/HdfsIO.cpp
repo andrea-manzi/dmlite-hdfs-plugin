@@ -1,6 +1,5 @@
 #include "Hdfs.h"
 #include <stdio.h>
-#include <syslog.h>
 #include <time.h>
 #include <sstream>
 #include <string.h>
@@ -13,6 +12,7 @@ HdfsIOHandler::HdfsIOHandler(HdfsIODriver* driver,
   driver(driver), path(uri),isWriting(false)
 {	
   //connect to the cluster
+  Log(Logger::Lvl4,hdfslogmask,hdfslogname," Trying to open file" << uri.c_str());
 
   this->fs = hdfsConnectAsUser(driver->nameNode.c_str(), driver->port, driver->uname.c_str());
 
@@ -45,7 +45,8 @@ HdfsIOHandler::HdfsIOHandler(HdfsIODriver* driver,
   if (!this->file)//workaround using ENOENT always
     throw DmException(ENOENT, "Can not open the Hdfs file '%s'", uri_string.c_str());
 
-  syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::HdfsIOHandler: opened file %s", uri_string.c_str());
+  Log(Logger::Lvl4,hdfslogmask,hdfslogname," opened file: "<< uri_string.c_str());
+
   
   this->isEof = false;
 
@@ -96,7 +97,7 @@ HdfsIOHandler::~HdfsIOHandler()
 	    ::close(this->temp_fd);
   }
 
-  syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::~HdfsIOHandler: closed file");
+  Log(Logger::Lvl4,hdfslogmask,hdfslogname,"closed file");
 
 }
 
@@ -105,7 +106,8 @@ HdfsIOHandler::~HdfsIOHandler()
 void HdfsIOHandler::close(void) throw (DmException)
 {
 
-  syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::close: close file %s", this->path.c_str());
+
+  Log(Logger::Lvl4,hdfslogmask,hdfslogname,"close file"  << this->path.c_str()) ;
 
   //in case of write operation write the file to hdfs
   if (this->isWriting) {
@@ -138,8 +140,8 @@ size_t HdfsIOHandler::read(char* buffer, size_t count) throw (DmException)
   	if (bytes_read < BUFF_SIZE)
   		this->isEof = true;
 	
-        syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::read: reading %d bytes from  file %s, requested bytes %d",bytes_read,this->path.c_str(), count);
-
+        Log(Logger::Lvl4,hdfslogmask,hdfslogname,"reading " << bytes_read << " bytes from file " << this->path.c_str() << ", requested bytes " << count);
+	
 	return bytes_read;
 }
 
@@ -148,7 +150,7 @@ size_t HdfsIOHandler::read(char* buffer, size_t count) throw (DmException)
 // Write a chunk of a file in a HDFS FS
 size_t HdfsIOHandler::write(const char* buffer, size_t count) throw (DmException){
 
-        syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::write: writing %d bytes to  file %s",count,this->path.c_str());
+        Log(Logger::Lvl4,hdfslogmask,hdfslogname,"writing " << count << " bytes to  file " << this->path.c_str());
 
         ssize_t nbytes = ::write(this->temp_fd, buffer, count);
  
@@ -164,8 +166,8 @@ size_t HdfsIOHandler::write(const char* buffer, size_t count) throw (DmException
 
 // Write a chunk of a file in a HDFS FS
 size_t HdfsIOHandler::writeToHDFS(const char* buffer, size_t count) throw (DmException){
-
-	syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::writeToHDFS writing %d bytes to  file %s",count,this->path.c_str());
+       
+	Log(Logger::Lvl4,hdfslogmask,hdfslogname,"writing " << count << " bytes to  file " << this->path.c_str());
 	
         return hdfsWrite(this->fs, this->file, buffer, count);
 }
@@ -180,7 +182,6 @@ int HdfsIOHandler::copyToHDFS(void) throw (DmException) {
     fd_from = ::open(this->temp_path, O_RDONLY);
     if (fd_from < 0)
         return -1;
-
 
     while (nread = ::read(fd_from, buf, sizeof buf), nread > 0)
     {
@@ -206,7 +207,7 @@ int HdfsIOHandler::copyToHDFS(void) throw (DmException) {
     {
         ::close(fd_from);
         /* Success! */
-	syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::copyToHDFS: Succesfully written file");
+        Log(Logger::Lvl4,hdfslogmask,hdfslogname,"Succesfully written file");
 	return 0;
     }
 
@@ -249,25 +250,26 @@ void HdfsIOHandler::seek(off_t offset, Whence whence) throw (DmException){
 		hdfsSeek(this->fs, this->file, positionToSet);
        }
 
-        syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::seek: seeking to offset %ld for file %s",positionToSet,this->path.c_str());
-
+        Log(Logger::Lvl4,hdfslogmask,hdfslogname,"seeking to offset " << positionToSet << " for  file " << this->path.c_str());
 
 }
 
 
 
 off_t HdfsIOHandler::tell(void) throw (DmException){
-  
-	syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::tell: file %s",this->path.c_str());
+
+        Log(Logger::Lvl4,hdfslogmask,hdfslogname,"file " << this->path.c_str());
 
 	return hdfsTell(this->fs, this->file);
+
+
 }
 
 
 
 void HdfsIOHandler::flush(void) throw (DmException){
 
-	syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::flush: file %s",this->path.c_str());
+ 	Log(Logger::Lvl4,hdfslogmask,hdfslogname,"file " << this->path.c_str());
      	
 	hdfsFlush(this->fs, this->file);
 }
@@ -278,12 +280,9 @@ bool HdfsIOHandler::eof(void) throw (DmException){
 	return this->isEof;
 }
 
-
 size_t HdfsIOHandler::pread(void* buffer, size_t count, off_t offset) throw (DmException){
 
-
-      syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::pread: read %d bytes from  file %s at offset ",count,this->path.c_str(), offset);
-      
+      Log(Logger::Lvl4,hdfslogmask,hdfslogname,"read " << count << " bytes from file " << this->path.c_str() << " at offset " << offset);
 	
       return hdfsPread(this->fs, this->file,offset, (char*)buffer, count);
 
@@ -292,13 +291,11 @@ size_t HdfsIOHandler::pread(void* buffer, size_t count, off_t offset) throw (DmE
 
 struct stat HdfsIOHandler::fstat(void) throw (DmException){
 
-      syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::fstat: on file %s ", this->path.c_str());
-
       struct stat st;
 
       st.st_size = hdfsAvailable(this->fs, this->file);
 
-      syslog(LOG_USER | LOG_DEBUG, "HdfsIOHandler::fstat: file %s has %d size",this->path.c_str(), st.st_size);
+      Log(Logger::Lvl4,hdfslogmask,hdfslogname, "File " << this->path.c_str() << " has size" <<  st.st_size);
 
       return st;
 
@@ -312,7 +309,7 @@ HdfsIODriver::HdfsIODriver(const std::string& nameNode,
 			       const std::string& tmpFolder):
   nameNode(nameNode), port(port), uname(uname),tokenPasswd(passwd), tokenUseIp(useIp), tmpFolder(tmpFolder)
 {
-   syslog(LOG_USER | LOG_DEBUG, "HdfsIODriver::HdfsIODriver: initialized");
+//nothing
 }
 
 
@@ -378,7 +375,7 @@ void HdfsIODriver::doneWriting(const Location& loc) throw (DmException)
   if (loc.empty())
     throw DmException(EINVAL, "Location is empty");
 
-  syslog(LOG_USER | LOG_DEBUG, "HdfsIODriver::doneWriting: trying to rename replica");
+  Log(Logger::Lvl4,hdfslogmask,hdfslogname," trying to rename replica"); 
 
 
   // Name the replica properly (supress .upload)
@@ -407,7 +404,7 @@ void HdfsIODriver::doneWriting(const Location& loc) throw (DmException)
 
   hdfsDisconnect(fs);
 
-  syslog(LOG_USER | LOG_DEBUG, "HdfsIODriver::doneWriting: renaming replica to %s", final.c_str());
+  Log(Logger::Lvl4,hdfslogmask,hdfslogname," renaming replica to " << final.c_str());
 
   
 }
@@ -416,19 +413,28 @@ void HdfsIODriver::doneWriting(const Location& loc) throw (DmException)
 
 void  HdfsIODriver::updateReplica(hdfsFS fs, std::string& final) throw (DmException) 
 {
-    
+  
+  //remove the host info if present
+  std::string uri_string = std::string(final);
+
+  size_t index = uri_string.find(':');
+
+  if (index!=std::string::npos){
+          uri_string = uri_string.substr(index+1,final.size());
+  }
+  
   //update replica
-  Replica copy(this->si_->getCatalog()->getReplicaByRFN(final.c_str()));
+  Replica copy(this->si_->getCatalog()->getReplicaByRFN(uri_string.c_str()));
   copy.status = Replica::kAvailable;
 
   this->si_->getCatalog()->updateReplica(copy);
 	
-  hdfsFileInfo* hInfo = hdfsGetPathInfo(fs, final.c_str());
+  hdfsFileInfo* hInfo = hdfsGetPathInfo(fs, uri_string.c_str());
        if (!hInfo)
              throw DmException(DMLITE_SYSERR(errno), "Could not stat %s",
                         final.c_str());
 
-  this->si_->getCatalog()->setSize(final.c_str(),hInfo->mSize);
+  this->si_->getCatalog()->setSize(uri_string.c_str(),hInfo->mSize);
 
   hdfsFreeFileInfo(hInfo, 1);
     

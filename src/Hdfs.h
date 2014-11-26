@@ -13,6 +13,7 @@
 #include <dmlite/cpp/poolmanager.h>
 #include <dmlite/cpp/utils/urls.h>
 #include <dmlite/cpp/catalog.h>
+#include <dmlite/cpp/utils/logger.h>
 #include <vector>
 #include <stdio.h>
 #include <fstream>
@@ -26,6 +27,9 @@
 namespace dmlite {
 
 class HdfsPoolDriver;
+
+   extern Logger::bitmask hdfslogmask;
+   extern Logger::component hdfslogname;
 
 /// PoolHandler
 class HdfsPoolHandler: public PoolHandler {
@@ -47,7 +51,6 @@ public:
 	void     removeReplica     (const Replica&) throw (DmException);
 
 	Location whereToWrite(const std::string&) throw (DmException);
-	std::string getDatanode(void) throw (DmException);
 
 private:
 	HdfsPoolDriver* driver;
@@ -64,7 +67,7 @@ private:
 /// PoolDriver
 class HdfsPoolDriver: public PoolDriver {
 public:
-	HdfsPoolDriver(const std::string&, bool, unsigned, bool,const std::vector<std::string>&) throw (DmException);
+	HdfsPoolDriver(const std::string&, bool, unsigned, const std::vector<std::string>&) throw (DmException);
 	~HdfsPoolDriver();
 
 	std::string getImplId() const throw();
@@ -87,7 +90,6 @@ private:
 	bool        tokenUseIp;
 	unsigned    tokenLife;
 	std::string userId;
-        bool 	    gatewayMode;
 	std::vector<std::string> gateways;
 };
 
@@ -169,7 +171,7 @@ private:
 
 
 /// IO Factory
-class HdfsFactory: public IOFactory, public PoolDriverFactory{
+class HdfsFactory: public IODriverFactory, public PoolDriverFactory{
 public:
 	HdfsFactory() throw (DmException);
 
@@ -185,7 +187,6 @@ private:
 	std::string nameNode;
 	unsigned    port;
 	std::string uname;
-	bool 	    gatewayMode;
 	std::vector<std::string> gateways;
 	std::string tmpFolder;
 	std::string tokenPasswd;
