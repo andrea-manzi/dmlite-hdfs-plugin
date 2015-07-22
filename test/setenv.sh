@@ -1,4 +1,4 @@
-export JAVA_HOME=/usr/java/latest
+export JAVA_HOME=/usr/lib/jvm/java/
 
 export HADOOP_HOME=/usr/lib/hadoop
 export HADOOP_HDFS_HOME=/usr/lib/hadoop-hdfs

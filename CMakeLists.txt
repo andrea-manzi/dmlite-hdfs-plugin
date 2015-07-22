@@ -5,7 +5,7 @@ project (dmlite-plugins-hdfs)
 # Version
 set(dmlite_plugins_hdfs_MAJOR 0)
 set(dmlite_plugins_hdfs_MINOR 7)
-set(dmlite_plugins_hdfs_PATCH 1)
+set(dmlite_plugins_hdfs_PATCH 3)
 
 #--------------------------------
 # needed for Boost 2.8

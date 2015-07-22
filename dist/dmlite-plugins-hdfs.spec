@@ -1,6 +1,6 @@
 Name:		dmlite-plugins-hdfs
-Version:	0.7.1
-Release:	1%{?dist}
+Version:	0.7.3
+Release:	3%{?dist}
 Summary:	HDFS plugin for dmlite
 Group:		Applications/Internet
 License:	ASL 2.0
@@ -13,12 +13,12 @@ Source0:	%{name}-%{version}.tar.gz
 Buildroot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	cmake%{?_isa}
-BuildRequires:	dmlite-devel >= 0.7.0
-BuildRequires:  dmlite-private-devel >= 0.7.0
+BuildRequires:	dmlite-devel >= 0.7.2
+BuildRequires:  dmlite-private-devel >= 0.7.2
 BuildRequires:	hadoop-libhdfs
 BuildRequires:	java-devel
 
-Requires:	dmlite-libs >= 0.7.0
+Requires:	dmlite-libs >= 0.7.2
 Requires: 	java-devel
 
 %description
@@ -49,9 +49,24 @@ rm -rf %{buildroot}
 %config(noreplace) %{_sysconfdir}/dmlite.conf.d/*
 
 %changelog
+* Wed Jul 08 2015 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.3-3
+- set HDFSReplication default value to 2
+- fix cleaning of tmp files when copy to HDFS fails
+
+* Tue May 19 2015 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.3-2
+- usage of hdfsConnectAsUserNewInstance
+- added HDFSReplication parameter
+
+* Mon Apr 13 2015 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.3-1
+- enable write via xrootd
+
+* Fri Apr 10 2015 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.2-1
+- fixed issue on removeReplica
+
 * Wed Nov 26 2014 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.1-1
 - added simple Authn 
 - added some missing functions for NS
+- fixed issue with metalink
 
 - removed getDatanode and the usage of the libhdfs extensions. Fully replaced by usage of HdfsGateway
 * Fri Jul 11 2014 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.0-1

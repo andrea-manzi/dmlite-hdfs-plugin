@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) CERN 2013
+ * 
+ * Copyright (c) Members of the EMI Collaboration. 2010-2013
+ * See  http://www.eu-emi.eu/partners for details on the copyright
+ * holders.
+ *  
+ * Licensed under Apache License Version 2.0        
+ * 
+ */
+
 #include <dmlite/cpp/catalog.h>
 #include <dmlite/cpp/poolmanager.h>
 #include "Hdfs.h"
@@ -14,8 +25,9 @@ using namespace dmlite;
 HdfsPoolDriver::HdfsPoolDriver(const std::string& passwd,
                                    bool useIp,
         	                   unsigned lifetime,
-				   const std::vector<std::string>& gateways) throw (DmException):
- stack(0x00), tokenPasswd(passwd), tokenUseIp(useIp), tokenLife(lifetime)
+				   const std::vector<std::string>& gateways,
+				   unsigned replication) throw (DmException):
+ stack(0x00), tokenPasswd(passwd), tokenUseIp(useIp), tokenLife(lifetime), replication(replication)
 {
 
   this->gateways = std::vector<std::string>(gateways);
@@ -81,14 +93,14 @@ PoolHandler* HdfsPoolDriver::createPoolHandler(const std::string& poolName) thro
                       "Wrong mode '%s' configured in the database for the hdfs pool %s",
                       meta.getString("mode").c_str(), poolName.c_str());
   
-  hdfsFS fs = hdfsConnectAsUser(host.c_str(),
+  hdfsFS fs = hdfsConnectAsUserNewInstance(host.c_str(),
                                 port,
                                 uname.c_str());
   if (fs == 0)
     throw DmException(DMLITE_SYSERR(errno),
                       "Could not create a HdfsPoolDriver: cannot connect to Hdfs");
     
-  return new HdfsPoolHandler(this, host, poolName, fs, this->stack, mode);
+  return new HdfsPoolHandler(this, host, poolName, fs, this->stack, mode,replication);
 }
 
 
@@ -126,9 +138,10 @@ HdfsPoolHandler::HdfsPoolHandler(HdfsPoolDriver* driver,
                                      const std::string& poolName,
                                      hdfsFS fs,
                                      StackInstance* si,
-                                     char mode):
+                                     char mode,
+				     unsigned replication):
   driver(driver), nameNode(nameNode), fs(fs), poolName(poolName), stack(si),
-  mode(mode)
+  mode(mode), replication(replication)
 {
 //nothing to do 
 }
@@ -163,6 +176,8 @@ uint64_t HdfsPoolHandler::getTotalSpace(void) throw (DmException)
     throw DmException(DMLITE_SYSERR(errno),
                       "Could not get the total capacity of %s",
                       this->poolName.c_str());
+  //replication factor
+  total = total/ this->replication;
   return total;
 }
 
@@ -175,7 +190,7 @@ uint64_t HdfsPoolHandler::getUsedSpace(void) throw (DmException)
     throw DmException(DMLITE_SYSERR(errno),
                       "Could not get the free space of %s",
                       this->poolName.c_str());
-
+  used = used/ this->replication;
   return used;
 }
 
@@ -289,6 +304,7 @@ void HdfsPoolHandler::removeReplica(const Replica& replica) throw (DmException)
     default:
       hdfsDelete(this->fs, replica.rfn.c_str(),0);
   }
+  this->stack->getCatalog()->deleteReplica(replica);
 }
 
 
@@ -338,6 +354,16 @@ Location HdfsPoolHandler::whereToWrite(const std::string& fn) throw (DmException
   
   // No token used
   return loc;
+}
+
+void  HdfsPoolHandler::cancelWrite(const Location& loc) throw (DmException)
+{
+  if (loc.empty())
+    throw DmException(EINVAL, "Empty location");
+  //getting the replica
+  Replica rep = this->stack->getCatalog()->getReplicaByRFN(loc[0].url.path);
+  this->removeReplica(rep);
+
 }
 
 

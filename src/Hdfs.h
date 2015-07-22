@@ -1,3 +1,15 @@
+/*
+ * Copyright (c) CERN 2013
+ * 
+ * Copyright (c) Members of the EMI Collaboration. 2010-2013
+ * See  http://www.eu-emi.eu/partners for details on the copyright
+ * holders.
+ *  
+ * Licensed under Apache License Version 2.0        
+ * 
+ *         
+*/
+
 /// @file    plugins/hadoop/Hdfs.h
 /// @brief   plugin to store data in a hdfs backend.
 /// @author  Alexandre Beche <abeche@cern.ch>
@@ -17,9 +29,8 @@
 #include <vector>
 #include <stdio.h>
 #include <fstream>
-
 #include <hdfs.h>
-
+#include <pthread.h>
 #define PATH_MAX 4096
 #define BUFF_SIZE 65536
 
@@ -36,7 +47,7 @@ class HdfsPoolHandler: public PoolHandler {
 public:
 	HdfsPoolHandler(HdfsPoolDriver*, const std::string& nameNode,
 			const std::string& poolName, hdfsFS fs,
-			StackInstance* si, char mode);
+			StackInstance* si, char mode,unsigned replication);
 	~HdfsPoolHandler();
 
 	std::string getPoolType (void) throw (DmException);
@@ -51,6 +62,7 @@ public:
 	void     removeReplica     (const Replica&) throw (DmException);
 
 	Location whereToWrite(const std::string&) throw (DmException);
+	void cancelWrite(const Location& ) throw (DmException);
 
 private:
 	HdfsPoolDriver* driver;
@@ -60,6 +72,7 @@ private:
 	std::string    poolName;
 	StackInstance* stack;
 	char           mode;
+	unsigned replication;
 };
 
 
@@ -67,7 +80,7 @@ private:
 /// PoolDriver
 class HdfsPoolDriver: public PoolDriver {
 public:
-	HdfsPoolDriver(const std::string&, bool, unsigned, const std::vector<std::string>&) throw (DmException);
+	HdfsPoolDriver(const std::string&, bool, unsigned, const std::vector<std::string>&,  unsigned replication) throw (DmException);
 	~HdfsPoolDriver();
 
 	std::string getImplId() const throw();
@@ -91,6 +104,7 @@ private:
 	unsigned    tokenLife;
 	std::string userId;
 	std::vector<std::string> gateways;
+        unsigned replication;
 };
 
 
@@ -116,7 +130,19 @@ public:
         struct stat fstat(void) throw (DmException);
         size_t writeToHDFS(const char* buffer, size_t count) throw (DmException);
         int    copyToHDFS(void) throw (DmException);
-
+protected:
+        pthread_mutex_t mtx_;
+        class lk {
+              public:
+                lk(pthread_mutex_t *mp): mp(mp)
+                 { int err; if (mp && (err=pthread_mutex_lock(mp)))
+                     throw DmException(err, "Could not lock a mutex"); }
+                ~lk()
+                  { int err; if (mp && (err=pthread_mutex_unlock(mp)))
+                    throw DmException(err, "Could not unlock a mutex"); }
+              private:
+                pthread_mutex_t *mp;
+            };
 
 private:
 	HdfsIODriver* driver;
@@ -138,7 +164,7 @@ private:
 class HdfsIODriver: public IODriver {
 public:
 	HdfsIODriver(const std::string&, unsigned, const std::string&,
-			const std::string&, bool, const std::string&);
+			const std::string&, bool, const std::string&,  unsigned replication);
 	~HdfsIODriver();
 
 	std::string getImplId() const throw();
@@ -164,6 +190,7 @@ private:
 	bool        tokenUseIp;
 	std::string userId;
 	std::string tmpFolder;
+        unsigned replication;
 	void updateReplica(hdfsFS fs, std::string& final) throw (DmException);
 
 };
@@ -192,6 +219,7 @@ private:
 	std::string tokenPasswd;
 	bool        tokenUseIp;
 	unsigned    tokenLife;
+        unsigned    replication;
 	
 };
 

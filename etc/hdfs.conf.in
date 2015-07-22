@@ -12,7 +12,11 @@ HdfsNameNode localhost
 HdfsPort 8020
 HdfsUser dpmmgr
 HdfsMode rw
-HdfsGateway true
+HdfsGateway localhost
+HdfsReplication 3
+
+# Grid mapfile
+MapFile /etc/lcgdm-mapfile
 
 # Token generation
 TokenPassword change-this
@@ -23,4 +27,3 @@ TokenLife 1000
 HadoopHomeLib /usr/lib/hadoop
 HdfsHomeLib   /usr/lib/hadoop-hdfs
 JavaHome /usr/java/latest
-~                              

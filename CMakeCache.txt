@@ -198,7 +198,7 @@ JAVA_INCLUDE_PATH:PATH=/etc/alternatives/java_sdk/include
 JAVA_INCLUDE_PATH2:PATH=/etc/alternatives/java_sdk/include/linux
 
 //Path to a library.
-JAVA_JVM_LIBRARY:FILEPATH=/etc/alternatives/java_sdk/jre/lib/amd64/server/libjvm.so
+JAVA_JVM_LIBRARY:FILEPATH=/etc/alternatives/java_sdk/jre/lib/amd64/client/libjvm.so
 
 //library directory suffix value
 LIB_SUFFIX:STRING=64
@@ -353,7 +353,7 @@ DMLITE_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: DMLITE_LIBRARIES
 DMLITE_LIBRARIES-ADVANCED:INTERNAL=1
 //Details about finding JNI
-FIND_PACKAGE_MESSAGE_DETAILS_JNI:INTERNAL=[/etc/alternatives/java_sdk/jre/lib/amd64/libjawt.so][/etc/alternatives/java_sdk/jre/lib/amd64/server/libjvm.so][/etc/alternatives/java_sdk/include][/etc/alternatives/java_sdk/include/linux][/etc/alternatives/java_sdk/include][v()]
+FIND_PACKAGE_MESSAGE_DETAILS_JNI:INTERNAL=[/etc/alternatives/java_sdk/jre/lib/amd64/libjawt.so][/etc/alternatives/java_sdk/jre/lib/amd64/client/libjvm.so][/etc/alternatives/java_sdk/include][/etc/alternatives/java_sdk/include/linux][/etc/alternatives/java_sdk/include][v()]
 //Details about finding dmlite
 FIND_PACKAGE_MESSAGE_DETAILS_dmlite:INTERNAL=[/usr/lib64/libdmlite.so][/usr/include][v()]
 //Details about finding hdfs

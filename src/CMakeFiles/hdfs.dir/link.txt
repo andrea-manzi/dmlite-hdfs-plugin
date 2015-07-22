@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC    -shared -Wl,-soname,plugin_hdfs.so -o plugin_hdfs.so CMakeFiles/hdfs.dir/Hdfs.cpp.o CMakeFiles/hdfs.dir/HdfsIO.cpp.o CMakeFiles/hdfs.dir/HdfsNS.cpp.o CMakeFiles/hdfs.dir/HdfsPool.cpp.o CMakeFiles/hdfs.dir/HdfsUtil.cpp.o CMakeFiles/hdfs.dir/HdfsAuthn.cpp.o CMakeFiles/hdfs.dir/Throw.cpp.o -ldl -ldmlite -lhdfs 

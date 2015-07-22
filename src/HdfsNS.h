@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) CERN 2013
+ *  
+ * Copyright (c) Members of the EMI Collaboration. 2010-2013
+ * See  http://www.eu-emi.eu/partners for details on the copyright
+ * holders.
+ *  
+ * Licensed under Apache License Version 2.0        
+ * 
+ *         
+*/
 /// @file    plugins/hadoop/HdfsNS.h
 /// @brief   plugin to store data in a hdfs backend.
 /// @author  Andrea Manzi <abeche@cern.ch>
@@ -34,7 +45,8 @@ public:
 	HdfsNS(	std::string nameNode,
 			unsigned port,
 			std::string uname,
-			std::string mode) throw (DmException);
+			std::string mode,
+			const std::vector<std::string>&) throw (DmException);
 
 	~HdfsNS() throw (DmException);
 
@@ -108,7 +120,7 @@ private:
 	unsigned    port;
 	std::string uname;
 	std::string mode;
-        
+        std::vector<std::string> gateways;
 
 };
 
@@ -189,6 +201,7 @@ private:
         bool        tokenUseIp;
         unsigned    tokenLife;
 	std::string mapFile;
+	std::vector<std::string> gateways;
 };
 
 class HDFSDir: public Directory {

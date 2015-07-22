@@ -4,15 +4,15 @@
 #include <dmlite/cpp/catalog.h>
 #include <dmlite/cpp/poolmanager.h>
 #include <dmlite/cpp/pooldriver.h>
-
+#include <stdio.h>
 
 int main(int argc, char **argv)
 {
 
  	dmlite::PluginManager manager;
   
-  	if (argc < 2) {
-    		std::cout << "Need at least one parameter." << std::endl;
+  	if (argc < 3) {
+    		std::cout << "Need at least two parameters." << std::endl;
     		return 1;
   	}
   
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 
   	//Set security credentials
   	dmlite::SecurityCredentials creds;
-  	creds.clientName = "/C=CH/O=CERN/OU=GD/CN=Test user 1";
+  	creds.clientName = "/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=amanzi/CN=683749/CN=Andrea Manzi";
 
   	creds.remoteAddress = "127.0.0.1";
   	try {
@@ -42,35 +42,20 @@ int main(int argc, char **argv)
 
 	dmlite::IODriver* iodriver;
 	dmlite::Extensible      extras;
-        extras["token"] = dmlite::generateToken("", "/dev/zero", "test", 1000, false);
+        extras["token"] = dmlite::generateToken("127.0.0.1", argv[2], "kwpoMyvcusgdbyyws6gfcxhntkLoh8jilwivnivel", 1000, false);//change third parameter to your value of TokenPassword
 	
 
 	iodriver = stack.getIODriver();
 
-	dmlite::HdfsIOHandler *handler = iodriver->createIOHandler("/dpm/myfile.txt",  O_RDONLY, args);
+	dmlite::IOHandler *handler = iodriver->createIOHandler(argv[2],0, extras,  O_RDONLY );
 
-
-	std::string test;
-	const char *test = "This file has been written by DMLITE\0";
+	//const char *test = "This file has been written by DMLITE\0";
 	char test[1024] = {'\0'};
 
 	memset(test, '\0', 1024);;
 	handler->read(test, 10);
 	std::cout << test;
-
-
-	handler->seek(10, std::ios_base::cur);
-
-	int i = 0;	
-	while(handler->eof() != true){
-		memset(test, '\0', 1024);;
-		handler->read(test, 3);
-		std::cout << test;
-		i++;
-	}
-
  	std::cout << std::endl;
-	std::cout << i << std::endl;
 	delete(handler);
 
   return 0;

@@ -1,3 +1,13 @@
+/*
+ * Copyright (c) CERN 2013
+ * 
+ * Copyright (c) Members of the EMI Collaboration. 2010-2013
+ * See  http://www.eu-emi.eu/partners for details on the copyright
+ * holders.
+ *  
+ * Licensed under Apache License Version 2.0        
+ * 
+*/
 #include "HdfsNS.h"
 
 using namespace dmlite;
@@ -63,7 +73,19 @@ void HdfsNSFactory::configure(const std::string& key, const std::string& value) 
  
  }
  else if (key == "MapFile")
+ {
     this->mapFile = value;
+ }
+ else if (key == "HdfsGateway") {
+    std::stringstream gatewayString(value);
+    std::string gateway;
+    while( std::getline( gatewayString , gateway , ',' ) ) {
+	 if (std::find(this->gateways.begin(),this->gateways.end(), HDFSUtil::trim(gateway))==this->gateways.end()){
+	         this->gateways.push_back( HDFSUtil::trim(gateway) );
+	}
+    }
+
+  }
   else
     throw DmException(DMLITE_CFGERR(DMLITE_UNKNOWN_KEY),
                       "Unrecognised option " + key);
@@ -76,7 +98,8 @@ Catalog* HdfsNSFactory::createCatalog(PluginManager* pm) throw(DmException)
          return new HdfsNS(this->nameNode,
                          this->port,
                          this->uname,
-                         this->mode);
+                         this->mode,
+			 this->gateways);
 }
 
 
@@ -108,7 +131,8 @@ HdfsNSFactory::~HdfsNSFactory() throw (DmException)
 HdfsNS::HdfsNS(std::string nameNode,
 		unsigned port,
 		std::string uname,
-		std::string mode)
+		std::string mode,
+		const std::vector<std::string>& gateways)
 
  throw (DmException): nameNode(nameNode),
  port(port),uname(uname),mode(mode),cwd("")
@@ -122,7 +146,8 @@ HdfsNS::HdfsNS(std::string nameNode,
 				"Could not create a HdfsNS: cannot connect to Hdfs");
 
 	this->cwd = getWorkingDir();
-
+	this->gateways = std::vector<std::string>(gateways);
+	Log(Logger::Lvl4,hdfslogmask, hdfslogname, "gateway size: " << this->gateways.size());
 }
 
 
@@ -185,7 +210,15 @@ ExtendedStat HdfsNS::extendedStat(const std::string& path,
         exStat.stat.st_gid   = 0;
         exStat.stat.st_uid   = 0;
  	
-	exStat.stat.st_nlink = (hInfo->mKind == kObjectKindDirectory) ? 3 : 1;
+	if (hInfo->mKind == kObjectKindDirectory) {
+		 int numFiles;
+		 hdfsFileInfo* hFolder = hdfsListDirectory(this->fs, path.c_str(),&numFiles);
+		 exStat.stat.st_nlink = numFiles;
+		 hdfsFreeFileInfo(hFolder, numFiles);
+	} else  
+		exStat.stat.st_nlink =  1;
+
+	
 	exStat.stat.st_ino   = 0;
     	exStat.stat.st_mode  =  (hInfo->mKind == kObjectKindDirectory) ? (S_IFDIR | hInfo->mPermissions) :  (S_IFREG | hInfo->mPermissions);
 
@@ -234,8 +267,15 @@ ExtendedStat HdfsNS::extendedStatByRFN(const std::string& rfn) throw (DmExceptio
 
    exStat.stat.st_gid   = 0;
    exStat.stat.st_uid   = 0;
-
-   exStat.stat.st_nlink = (hInfo->mKind == kObjectKindDirectory) ? 3 : 1;
+  
+   if (hInfo->mKind == kObjectKindDirectory) {
+           int numFiles;
+           hdfsFileInfo* hFolder = hdfsListDirectory(this->fs, rfn.c_str(),&numFiles);
+           exStat.stat.st_nlink = numFiles;
+           hdfsFreeFileInfo(hFolder, numFiles);
+     } else  
+           exStat.stat.st_nlink =  1;
+  
    exStat.stat.st_ino   = 0;
    exStat.stat.st_mode  =  (hInfo->mKind == kObjectKindDirectory) ? (S_IFDIR | hInfo->mPermissions) :  (S_IFREG | hInfo->mPermissions);
 
@@ -343,33 +383,16 @@ void HdfsNS::updateReplica(const Replica& replica) throw (DmException)
 std::vector<Replica> HdfsNS::getReplicas(const std::string& path) throw (DmException)
 {
 
-  std::vector<std::string> datanodes;
-  if(hdfsExists(this->fs, path.c_str()) == 0){
-    char*** hosts = hdfsGetHosts(this->fs, path.c_str(), 0, 1);
-    if(hosts){
-      int i=0;
-      while(hosts[i]) {
-        int j = 0;
-        while(hosts[i][j]) {
-          datanodes.push_back(std::string(hosts[i][j]));
-          ++j;
-        }
-        ++i;
-      }
-      hdfsFreeHosts(hosts);
-    }
-  }
-  
-  // Beware! If the file size is 0, no host will be returned
-  // Remit to the name node (for instance)
-  if (datanodes.size() == 0) {
+  if(hdfsExists(this->fs, path.c_str()) != 0){
     throw DmException(DMLITE_NO_REPLICAS, "HdfsNS: No replicas found on Hdfs for %s",
                       path.c_str());
   }
 
     std::vector<Replica> replicas;
-  
-    for (unsigned i = 0; i < datanodes.size(); ++i) {
+
+    for (unsigned i = 0; i < this->gateways.size(); ++i) {
+
+        Log(Logger::Lvl4,hdfslogmask, hdfslogname, "gateway: " << this->gateways.at(i).c_str());
     
     	Replica      replica;
   	ExtendedStat xStat = this->extendedStat(path, true);
@@ -382,14 +405,12 @@ std::vector<Replica> HdfsNS::getReplicas(const std::string& path) throw (DmExcep
   	replica.ltime      = 0;
   	replica.type       = Replica::kPermanent;
   	replica.status     = Replica::kAvailable;
-  	replica.server     = datanodes[i];
+  	replica.server     = this->gateways.at(i).c_str();
   	replica["pool"]    = std::string("hdfs_pool");
 	replica.rfn 	   = path;
 
     	replicas.push_back(replica);
 	}
-  
-
 
   return replicas;
 
@@ -590,26 +611,7 @@ ExtendedStat*  HdfsNS::readDirx(Directory* dir) throw (DmException)
 Replica  HdfsNS::getReplicaByRFN(const std::string& rfn) throw (DmException)
 {
 
-   std::vector<std::string> datanodes;
-  if(hdfsExists(this->fs, rfn.c_str()) == 0){
-    char*** hosts = hdfsGetHosts(this->fs, rfn.c_str(), 0, 1);
-    if(hosts){
-      int i=0;
-      while(hosts[i]) {
-        int j = 0;
-        while(hosts[i][j]) {
-          datanodes.push_back(std::string(hosts[i][j]));
-          ++j;
-        }
-        ++i;
-      }
-      hdfsFreeHosts(hosts);
-    }
-  }
-
-  // Beware! If the file size is 0, no host will be returned
-  // Remit to the name node (for instance)
-  if (datanodes.size() == 0) {
+  if(hdfsExists(this->fs, rfn.c_str()) != 0){
     throw DmException(DMLITE_NO_REPLICAS, "No replicas found on Hdfs for %s",
                       rfn.c_str());
   }
@@ -625,7 +627,7 @@ Replica  HdfsNS::getReplicaByRFN(const std::string& rfn) throw (DmException)
         replica.ltime      = 0;
         replica.type       = Replica::kPermanent;
         replica.status     = Replica::kAvailable;
-        replica.server     = datanodes[0];
+        replica.server     = HDFSUtil::getRandomGateway(this->gateways).c_str();//random
         replica["pool"]    = std::string("hdfs_pool");
         replica.rfn        = rfn;
 

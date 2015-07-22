@@ -1,3 +1,15 @@
+/*
+ *  Copyright (c) CERN 2013
+ * 
+ *  Copyright (c) Members of the EMI Collaboration. 2010-2013
+ *  See  http://www.eu-emi.eu/partners for details on the copyright
+ *  holders.
+ *  
+ *  Licensed under Apache License Version 2.0        
+ * 
+ *     
+*/
+
 /// @file    plugins/hadoop/Hdfs.cpp
 /// @brief   hadoop plugin.
 /// @author  Alexandre Beche <abeche@cern.ch>
@@ -14,7 +26,7 @@ Logger::component dmlite::hdfslogname = "Hdfs";
 // HdfsFactory implementation
 HdfsFactory::HdfsFactory() throw (DmException):
       nameNode("localhost"), port(8020), uname("dpmmgr"), tmpFolder("/tmp"),
-      tokenPasswd("default"), tokenUseIp(true), tokenLife(600)
+      tokenPasswd("default"), tokenUseIp(true), tokenLife(600), replication(2)
 {
   // Nothing
   hdfslogmask = Logger::get()->getMask(hdfslogname);
@@ -42,11 +54,16 @@ void HdfsFactory::configure(const std::string& key, const std::string& value) th
   else if (key == "HdfsUser") {
     this->uname = value;
   }
+  else if (key == "HdfsReplication") {
+    this->replication = (unsigned)atoi(value.c_str());
+  }
   else if (key == "HdfsGateway") {
     std::stringstream gatewayString(value);
     std::string gateway;
     while( std::getline( gatewayString , gateway , ',' ) ) {
-    	 this->gateways.push_back( HDFSUtil::trim(gateway) );
+	if (std::find(this->gateways.begin(),this->gateways.end(), HDFSUtil::trim(gateway))==this->gateways.end()){
+                 this->gateways.push_back( HDFSUtil::trim(gateway) );
+        }
     }
 
   }
@@ -61,7 +78,6 @@ void HdfsFactory::configure(const std::string& key, const std::string& value) th
       std::string libFolder = std::string(value);
       HDFSUtil::setClasspath(libFolder.append(std::string("/lib")));
 
-
   }
   else if (key == "HdfsHomeLib") {
          if (value == "")
@@ -73,7 +89,6 @@ void HdfsFactory::configure(const std::string& key, const std::string& value) th
 
       HDFSUtil::setClasspath(libFolder.append(std::string("/lib")));
 
-
   }
 
    else if (key == "JavaHome"){
@@ -82,6 +97,7 @@ void HdfsFactory::configure(const std::string& key, const std::string& value) th
 
       HDFSUtil::setLibraryPath(value);
 	
+  
  
  }
 
@@ -95,7 +111,7 @@ void HdfsFactory::configure(const std::string& key, const std::string& value) th
 IODriver* HdfsFactory::createIODriver(PluginManager* pm) throw (DmException)
 {
   return new HdfsIODriver(this->nameNode, this->port, this->uname,
-                            this->tokenPasswd, this->tokenUseIp, this->tmpFolder);
+                            this->tokenPasswd, this->tokenUseIp, this->tmpFolder, this->replication);
 }
 
 
@@ -112,7 +128,8 @@ PoolDriver* HdfsFactory::createPoolDriver() throw (DmException)
   return new HdfsPoolDriver(this->tokenPasswd,
                               this->tokenUseIp,
                               this->tokenLife,
-			      this->gateways);
+			      this->gateways,
+			      this->replication);
 }
 
 

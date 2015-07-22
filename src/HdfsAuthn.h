@@ -1,3 +1,13 @@
+/*
+ *  Copyright (c) CERN 2013
+ * 
+ *  Copyright (c) Members of the EMI Collaboration. 2010-2013
+ *  See  http://www.eu-emi.eu/partners for details on the copyright
+ *  holders.
+ *  
+ *  Licensed under Apache License Version 2.0        
+ * 
+*/
 /// @file   HdfsAuthn.h
 /// @author  <amanzi@cern.ch>
 #ifndef HDFSAUTHN_H

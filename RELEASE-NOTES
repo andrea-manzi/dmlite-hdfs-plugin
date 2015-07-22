@@ -1,3 +1,9 @@
+* Tue 13 April 2015 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.3-1
+- enable write via xrootd
+
+* Tue 10 April 2015 Andrea Manzi <andrea.manzi@cern.ch> - 0.7.2-1
+- fixed issue on removeReplica
+
 * Tue 6 May 2014 Andrea Manzi <andrea.manzi@cern.ch> - 0.6.5-1
 - added Multi gateway support
 - implemented file buffering for write operations

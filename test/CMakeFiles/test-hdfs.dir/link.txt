@@ -1,0 +1,1 @@
+/usr/bin/c++       CMakeFiles/test-hdfs.dir/test-hdfs.cpp.o  -o test-hdfs -rdynamic -ldl -ldmlite -lhdfs 

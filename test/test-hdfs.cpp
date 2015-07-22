@@ -32,7 +32,7 @@ int main (int argc, char **argv)
 
   	//Set security credentials
   	dmlite::SecurityCredentials creds;
-  	creds.clientName = "/C=CH/O=CERN/OU=GD/CN=Test user 1";
+  	creds.clientName = "/DC=ch/DC=cern/OU=Organic Units/OU=Users/CN=amanzi/CN=683749/CN=Andrea Manzi";
 
   	creds.remoteAddress = "127.0.0.1";
   	try {
@@ -110,7 +110,7 @@ int main (int argc, char **argv)
 	dmlite::Location loc;
 	try {
 		std::cout << "testing whereToWrite"  << std::endl;
-		loc = poolmanager->whereToWrite("/dpm/andrea");
+		loc = poolmanager->whereToWrite("/dpm/cern.ch/home/dteam/andrea");
 
                std::cout << "where to write done" << std::endl;
 

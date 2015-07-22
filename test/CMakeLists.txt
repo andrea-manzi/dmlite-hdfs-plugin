@@ -22,8 +22,8 @@ configure_file (${CMAKE_CURRENT_SOURCE_DIR}/hdfs.conf
                 ${CMAKE_CURRENT_BINARY_DIR}/hdfs.conf)
 
 add_executable        (test-hdfs test-hdfs.cpp)
-target_link_libraries (test-hdfs dl ${DMLITE_LIBRARIES} ${JNI_INCLUDE_LIBRARIES} ${HDFS_LIBRARIES})
+target_link_libraries (test-hdfs dl ${DMLITE_LIBRARIES}  ${HDFS_LIBRARIES})
 
-#add_executable        (test-hdfs-io test-hdfs-io.cpp)
-#target_link_libraries (test-hdfs-io ${DMLITE_LIBRARIES}  ${HDFS_LIBRARIES})
+add_executable        (test-hdfs-io test-hdfs-io.cpp)
+target_link_libraries (test-hdfs-io ${DMLITE_LIBRARIES}  ${HDFS_LIBRARIES})
 
